@@ -328,6 +328,34 @@ export const OcrUploadZone: React.FC<OcrUploadZoneProps> = ({
               </div>
             </div>
 
+            {/* Option 3: Gallery / File Upload */}
+            <div
+              onClick={() => fileInputRef.current?.click()}
+              className="border-2 border-dashed border-[#DFC0B3] hover:border-[#3B82F6] bg-[#F2F3F6] rounded-2xl p-4 flex flex-col items-center justify-center gap-2 cursor-pointer transition-all hover:bg-[#E1E2E5]/70 active:scale-95 shadow-xs group"
+            >
+              <div className="w-12 h-12 rounded-full bg-[#3B82F6] text-white flex items-center justify-center shadow-md group-hover:scale-105 transition-transform">
+                <span className="material-symbols-outlined text-[26px]">photo_library</span>
+              </div>
+              <div className="text-center">
+                <p className="font-extrabold text-[14px] text-[#191C1E]">앨범에서 선택</p>
+                <p className="text-[11px] text-[#595F67] mt-0.5">스크린샷 불러오기</p>
+              </div>
+            </div>
+
+            {/* Option 4: Clipboard Paste */}
+            <div
+              onClick={handlePasteButtonClick}
+              className="border-2 border-dashed border-[#DFC0B3] hover:border-[#8B5CF6] bg-[#F2F3F6] rounded-2xl p-4 flex flex-col items-center justify-center gap-2 cursor-pointer transition-all hover:bg-[#E1E2E5]/70 active:scale-95 shadow-xs group"
+            >
+              <div className="w-12 h-12 rounded-full bg-[#8B5CF6] text-white flex items-center justify-center shadow-md group-hover:scale-105 transition-transform">
+                <span className="material-symbols-outlined text-[26px]">content_paste</span>
+              </div>
+              <div className="text-center">
+                <p className="font-extrabold text-[14px] text-[#191C1E]">붙여넣기</p>
+                <p className="text-[11px] text-[#595F67] mt-0.5">복사한 사진 넣기</p>
+              </div>
+            </div>
+
 
           </div>
         )}
