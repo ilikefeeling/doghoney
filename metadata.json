@@ -1,0 +1,6 @@
+{
+  "name": "TrunkFit - 당근마켓 차박 & 가구 트렁크 적재 시뮬레이터",
+  "description": "중고거래 가구·가전이 내 차량 트렁크에 들어가는지 AI 크기 측정 및 3D 시뮬레이션으로 즉시 확인하고 인증 짤을 생성하는 서비스",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
