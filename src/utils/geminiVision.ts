@@ -32,10 +32,11 @@ const DIMENSION_PROMPT = `당신은 중고거래 가구/가전 치수 분석 전
 이 사진을 분석하여 아래 JSON 형식으로 물품 정보를 추출하세요.
 
 규칙:
-1. 사진 속 텍스트(당근마켓 본문, 라벨, 스티커)에서 제조사/모델명/규격을 우선 추출
-2. 텍스트에 치수가 없으면, 물품 종류를 식별하고 표준 규격을 추정
-3. 모든 치수는 cm 단위 정수
+1. 사진 속 텍스트(라벨, 스티커, 영수증 등)에 제조사나 모델명(예: LG 65인치, 삼성 건조기 17kg, 이케아 미케 등)이 보인다면, 단순히 화면에 적힌 무의미한 숫자를 잡지 말고 해당 모델의 '공식/실제 규격'을 추정해서 우선 적용하세요.
+2. 텍스트에 치수나 모델명이 전혀 없으면, 물품 종류를 식별하고 표준 규격을 추정하세요.
+3. 모든 치수는 cm 단위 정수로만 반환하세요.
 4. category는 "가구", "가전", "취미", "육아", "기타" 중 택 1
+5. name 필드에 큰따옴표(")를 쓸 경우 JSON 문법 오류가 발생하므로, 인치 기호(") 대신 한글 '인치'를 사용하거나 큰따옴표를 절대 쓰지 마세요.
 
 JSON 형식 (다른 텍스트 없이 JSON만 반환):
 {
@@ -136,8 +137,15 @@ export async function extractDimensionsFromImage(
     }
 
     // Parse JSON from the response (handle markdown code blocks)
-    const jsonStr = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-    const parsed = JSON.parse(jsonStr) as ExtractedDimensions;
+    let jsonStr = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+    
+    let parsed: ExtractedDimensions;
+    try {
+      parsed = JSON.parse(jsonStr) as ExtractedDimensions;
+    } catch (parseError) {
+      console.error('[TrunkFit] JSON Parse Error. Raw string was:', jsonStr);
+      throw parseError;
+    }
 
     // Validate and sanitize
     return {
