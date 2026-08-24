@@ -39,7 +39,52 @@ export function useAuth() {
           setIsLoggedIn(true);
         } catch (error) {
           console.error('Failed to fetch profile with existing token', error);
+          
+          // 토큰 갱신(Refresh) 시도
+          const refreshToken = localStorage.getItem('kakao_refresh_token');
+          const restApiKey = import.meta.env.VITE_KAKAO_REST_API_KEY;
+          
+          if (refreshToken && restApiKey) {
+            try {
+              const params = new URLSearchParams();
+              params.append('grant_type', 'refresh_token');
+              params.append('client_id', restApiKey);
+              params.append('refresh_token', refreshToken);
+              
+              const response = await fetch('https://kauth.kakao.com/oauth/token', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8',
+                },
+                body: params.toString(),
+              });
+              
+              if (response.ok) {
+                const data = await response.json();
+                const { access_token, refresh_token: new_refresh_token } = data;
+                
+                localStorage.setItem('kakao_access_token', access_token);
+                window.Kakao.Auth.setAccessToken(access_token);
+                
+                if (new_refresh_token) {
+                  localStorage.setItem('kakao_refresh_token', new_refresh_token);
+                }
+                
+                // 갱신된 토큰으로 프로필 재요청
+                const profile = await fetchKakaoProfile();
+                setUser(profile);
+                setIsLoggedIn(true);
+                setIsReady(true);
+                return;
+              }
+            } catch (refreshError) {
+              console.error('Failed to refresh token', refreshError);
+            }
+          }
+          
+          // 갱신 실패 시 로컬스토리지 정리
           localStorage.removeItem('kakao_access_token');
+          localStorage.removeItem('kakao_refresh_token');
           setIsLoggedIn(false);
         }
       }
@@ -72,24 +117,9 @@ export function useAuth() {
       return;
     }
 
-    window.Kakao.Auth.login({
-      success: async function (authObj: any) {
-        const token = authObj.access_token;
-        localStorage.setItem('kakao_access_token', token);
-        window.Kakao.Auth.setAccessToken(token);
-        
-        try {
-          const profile = await fetchKakaoProfile();
-          setUser(profile);
-          setIsLoggedIn(true);
-        } catch (e) {
-          console.error(e);
-        }
-      },
-      fail: function (err: any) {
-        console.error('Kakao login fail', err);
-        alert('로그인에 실패했습니다.');
-      },
+    // 기존 팝업 방식(Kakao.Auth.login) 대신 리다이렉트 방식(Kakao.Auth.authorize) 사용
+    window.Kakao.Auth.authorize({
+      redirectUri: window.location.origin + '/oauth/callback/kakao',
     });
   }, []);
 
@@ -97,11 +127,13 @@ export function useAuth() {
     if (window.Kakao && window.Kakao.Auth.getAccessToken()) {
       window.Kakao.Auth.logout(() => {
         localStorage.removeItem('kakao_access_token');
+        localStorage.removeItem('kakao_refresh_token');
         setIsLoggedIn(false);
         setUser(null);
       });
     } else {
       localStorage.removeItem('kakao_access_token');
+      localStorage.removeItem('kakao_refresh_token');
       setIsLoggedIn(false);
       setUser(null);
     }
