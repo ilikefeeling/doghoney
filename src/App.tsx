@@ -274,6 +274,9 @@ export default function App() {
     const newDims = { ...dims, image: imageSrc || dims.image };
     setDimensions(newDims);
     
+    // 사진 분석 완료 후 시뮬레이션 화면(최상단)으로 부드럽게 스크롤
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    
     if (!hasSelectedCar) {
       setIsForceCarSelectModalOpen(true);
     } else {
