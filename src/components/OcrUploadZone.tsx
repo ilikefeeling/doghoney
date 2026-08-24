@@ -21,6 +21,7 @@ export const OcrUploadZone: React.FC<OcrUploadZoneProps> = ({
   const [scanError, setScanError] = useState<string | null>(null);
   const [aiConfidence, setAiConfidence] = useState<string | null>(null);
   const [pasteNotice, setPasteNotice] = useState(false);
+  const [showPasteFallback, setShowPasteFallback] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(() => (window as typeof window & { pwaDeferredPrompt?: any }).pwaDeferredPrompt || null);
   const [isPromptChecked, setIsPromptChecked] = useState(false);
 
@@ -83,6 +84,7 @@ export const OcrUploadZone: React.FC<OcrUploadZoneProps> = ({
             }
 
               setPasteNotice(true);
+              setShowPasteFallback(false);
               setTimeout(() => setPasteNotice(false), 3000);
 
             const reader = new FileReader();
@@ -105,7 +107,7 @@ export const OcrUploadZone: React.FC<OcrUploadZoneProps> = ({
   const handlePasteButtonClick = async () => {
     try {
       if (!navigator.clipboard || !navigator.clipboard.read) {
-        alert("현재 기기/브라우저에서는 버튼을 통한 클립보드 붙여넣기를 지원하지 않습니다.\n입력창을 꾹 눌러 '붙여넣기'를 직접 사용해주세요.");
+        setShowPasteFallback(true);
         return;
       }
       
@@ -142,7 +144,7 @@ export const OcrUploadZone: React.FC<OcrUploadZoneProps> = ({
       }
     } catch (err) {
       console.error(err);
-      alert("클립보드 접근 권한이 없거나 실패했습니다. 직접 파일 업로드 기능을 사용해주세요.");
+      setShowPasteFallback(true);
     }
   };
 
@@ -397,6 +399,52 @@ export const OcrUploadZone: React.FC<OcrUploadZoneProps> = ({
         >
           <span className="material-symbols-outlined text-[14px]">smart_toy</span>
           {confidenceBadge.text}
+        </div>
+      )}
+
+      {/* Paste Fallback Modal for iOS */}
+      {showPasteFallback && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-3xl p-6 w-full max-w-[320px] flex flex-col items-center gap-4 animate-in zoom-in-95 shadow-2xl">
+            <div className="w-16 h-16 rounded-full bg-[#F5F3FF] flex items-center justify-center text-[#8B5CF6] shadow-sm">
+              <span className="material-symbols-outlined text-[32px]">touch_app</span>
+            </div>
+            <div className="text-center">
+              <h3 className="text-[18px] font-extrabold text-[#191C1E]">화면을 꾹 눌러주세요</h3>
+              <p className="text-[13px] text-[#595F67] mt-2 leading-relaxed">
+                아이폰 정책상 직접 붙여넣기가 제한됩니다.<br />
+                아래 영역을 <strong>꾹 누른 뒤 '붙여넣기'</strong> 하세요.
+              </p>
+            </div>
+            
+            <div className="relative w-full h-24 border-2 border-dashed border-[#8B5CF6] rounded-2xl overflow-hidden bg-[#F5F3FF] flex flex-col items-center justify-center group active:bg-[#EDE9FE] transition-colors">
+              <span className="material-symbols-outlined text-[#8B5CF6]/50 text-[24px] mb-1 pointer-events-none">content_paste_go</span>
+              <span className="text-[#8B5CF6] font-bold text-sm pointer-events-none">여기를 꾹 누르세요</span>
+              <textarea 
+                className="absolute inset-0 w-full h-full opacity-0 cursor-text resize-none text-[16px]"
+                autoFocus
+              ></textarea>
+            </div>
+            
+            <div className="w-full flex flex-col gap-2 mt-1">
+              <button 
+                onClick={() => {
+                  setShowPasteFallback(false);
+                  fileInputRef.current?.click();
+                }}
+                className="text-[14px] font-extrabold text-white px-4 py-3 bg-[#3B82F6] hover:bg-[#2563EB] active:scale-95 transition-all rounded-xl w-full flex items-center justify-center gap-1.5 shadow-md shadow-[#3B82F6]/20"
+              >
+                <span className="material-symbols-outlined text-[18px]">photo_library</span>
+                앨범에서 스크린샷 불러오기
+              </button>
+              <button 
+                onClick={() => setShowPasteFallback(false)}
+                className="text-[13px] font-bold text-[#595F67] px-4 py-2.5 bg-[#F2F3F6] active:bg-[#E1E2E5] rounded-xl w-full"
+              >
+                닫기
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
