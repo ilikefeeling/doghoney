@@ -112,20 +112,21 @@ export function useAuth() {
   };
 
   const loginWithKakao = useCallback(() => {
-    if (!window.Kakao || !window.Kakao.isInitialized()) {
-      alert('카카오 로그인을 초기화할 수 없습니다. (키가 없거나 로드되지 않음)');
-      return;
-    }
-
     // 모바일 환경이나 다른 도메인(vercel 임시도메인, www 누락 등)에서 
     // 접속해도 항상 등록된 정식 도메인으로 리다이렉트되도록 고정합니다.
     const redirectUri = window.location.hostname === 'localhost'
       ? 'http://localhost:3000/oauth/callback/kakao'
       : 'https://www.doghoney.xyz/oauth/callback/kakao';
 
-    window.Kakao.Auth.authorize({
-      redirectUri,
-    });
+    const restApiKey = import.meta.env.VITE_KAKAO_REST_API_KEY;
+    if (!restApiKey) {
+      alert('카카오 REST API 키가 설정되지 않았습니다.');
+      return;
+    }
+
+    // JS SDK를 거치지 않고 REST API 방식으로 직접 리다이렉트 (KOE006 에러 원천 차단)
+    const kakaoAuthUrl = `https://kauth.kakao.com/oauth/authorize?client_id=${restApiKey}&redirect_uri=${redirectUri}&response_type=code`;
+    window.location.href = kakaoAuthUrl;
   }, []);
 
   const logout = useCallback(() => {
