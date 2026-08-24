@@ -18,7 +18,7 @@ export const OcrUploadZone: React.FC<OcrUploadZoneProps> = ({
   const [isScanning, setIsScanning] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [scanMessage, setScanMessage] = useState<string>('');
-  const [scanError, setScanError] = useState<string | null>(null);
+  const [showErrorModal, setShowErrorModal] = useState<string | null>(null);
   const [aiConfidence, setAiConfidence] = useState<string | null>(null);
   const [pasteNotice, setPasteNotice] = useState(false);
   const [showPasteFallback, setShowPasteFallback] = useState(false);
@@ -158,16 +158,16 @@ export const OcrUploadZone: React.FC<OcrUploadZoneProps> = ({
     if (!file) return;
 
     if (file.size > 5 * 1024 * 1024) {
-      setScanError('⚠️ 파일 크기가 5MB를 초과합니다.');
+      setShowErrorModal('파일 크기가 5MB를 초과합니다.');
       return;
     }
 
     if (!file.type.startsWith('image/')) {
-      setScanError('⚠️ 이미지 파일만 업로드 가능합니다.');
+      setShowErrorModal('이미지 파일만 업로드 가능합니다.');
       return;
     }
 
-    setScanError(null);
+    setShowErrorModal(null);
 
     const reader = new FileReader();
     reader.onload = () => {
@@ -182,7 +182,7 @@ export const OcrUploadZone: React.FC<OcrUploadZoneProps> = ({
 
   const processAiImage = async (file: File, imgSrc: string) => {
     setIsScanning(true);
-    setScanError(null);
+    setShowErrorModal(null);
     setAiConfidence(null);
     setScanMessage('📸 사진 분석 시작...');
 
@@ -205,11 +205,11 @@ export const OcrUploadZone: React.FC<OcrUploadZoneProps> = ({
         setIsScanning(false);
         setScanMessage('');
       }, 500);
-    } catch (error) {
+    } catch (error: any) {
       console.error('[TrunkFit] AI scan error:', error);
       setIsScanning(false);
       setScanMessage('');
-      setScanError('AI 분석에 실패했습니다. 치수를 직접 입력해주세요.');
+      setShowErrorModal(error.message || 'AI 분석에 실패했습니다.');
     }
   };
 
@@ -384,11 +384,30 @@ export const OcrUploadZone: React.FC<OcrUploadZoneProps> = ({
         </div>
       )}
 
-      {/* Error Message */}
-      {scanError && (
-        <div className="px-3 py-2 bg-[#FEE2E2] border border-[#FCA5A5] rounded-xl text-xs text-[#B91C1C] font-medium flex items-center gap-1.5">
-          <span className="material-symbols-outlined text-[14px]">error</span>
-          {scanError}
+      {/* Error Message Modal */}
+      {showErrorModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-3xl p-6 w-full max-w-[320px] flex flex-col items-center gap-4 animate-in zoom-in-95 shadow-2xl">
+            <div className="w-16 h-16 rounded-full bg-[#FEE2E2] flex items-center justify-center text-[#B91C1C] shadow-sm">
+              <span className="material-symbols-outlined text-[32px]">error</span>
+            </div>
+            <div className="text-center">
+              <h3 className="text-[18px] font-extrabold text-[#191C1E]">분석에 실패했습니다</h3>
+              <p className="text-[13px] text-[#595F67] mt-2 leading-relaxed">
+                {showErrorModal.includes('API') 
+                  ? '서버 통신 오류가 발생했습니다. (API 키 확인 필요)' 
+                  : showErrorModal === 'Empty response from Gemini' 
+                    ? 'AI가 사진에서 물건을 인식하지 못했습니다.' 
+                    : showErrorModal}
+              </p>
+            </div>
+            <button 
+              onClick={() => setShowErrorModal(null)}
+              className="mt-2 text-[14px] font-extrabold text-white px-4 py-3 bg-[#B91C1C] hover:bg-[#991B1B] active:scale-95 transition-all rounded-xl w-full flex items-center justify-center shadow-md shadow-[#B91C1C]/20"
+            >
+              확인
+            </button>
+          </div>
         </div>
       )}
 

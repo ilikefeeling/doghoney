@@ -153,7 +153,7 @@ export async function extractDimensionsFromImage(
     };
   } catch (error) {
     console.error('[TrunkFit] Gemini Vision extraction failed:', error);
-    return fallbackEstimate();
+    throw error;
   }
 }
 
