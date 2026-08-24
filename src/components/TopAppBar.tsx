@@ -1,7 +1,5 @@
 import React from 'react';
 
-import { KakaoLoginBtn } from './KakaoLoginBtn';
-
 interface TopAppBarProps {
   onOpenMenu: () => void;
   onOpenHelp: () => void;
@@ -26,17 +24,13 @@ export const TopAppBar: React.FC<TopAppBarProps> = ({ onOpenMenu, onOpenHelp }) 
           </span>
         </div>
 
-        <div className="flex items-center gap-1">
-          <KakaoLoginBtn />
-          
-          <button
-            onClick={onOpenHelp}
-            className="text-[#584238] hover:bg-[#F2F3F6] active:scale-95 transition-all rounded-full p-2 flex items-center justify-center cursor-pointer"
-            aria-label="도움말 보기"
-          >
-            <span className="material-symbols-outlined text-[24px]">help</span>
-          </button>
-        </div>
+        <button
+          onClick={onOpenHelp}
+          className="text-[#584238] hover:bg-[#F2F3F6] active:scale-95 transition-all rounded-full p-2 flex items-center justify-center cursor-pointer"
+          aria-label="도움말 보기"
+        >
+          <span className="material-symbols-outlined text-[24px]">help</span>
+        </button>
       </div>
     </header>
   );

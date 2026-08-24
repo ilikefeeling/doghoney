@@ -6,10 +6,12 @@ import { useRateLimit } from '../hooks/useRateLimit';
 
 interface OcrUploadZoneProps {
   onDimensionsExtracted: (dims: ItemDimensions, imageSrc?: string) => void;
+  onRateLimitExceeded?: () => void;
 }
 
 export const OcrUploadZone: React.FC<OcrUploadZoneProps> = ({
   onDimensionsExtracted,
+  onRateLimitExceeded,
 }) => {
   const [isScanning, setIsScanning] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
@@ -17,15 +19,14 @@ export const OcrUploadZone: React.FC<OcrUploadZoneProps> = ({
   const [scanError, setScanError] = useState<string | null>(null);
   const [aiConfidence, setAiConfidence] = useState<string | null>(null);
   const [pasteNotice, setPasteNotice] = useState(false);
-  const [showLoginModal, setShowLoginModal] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(() => (window as typeof window & { pwaDeferredPrompt?: any }).pwaDeferredPrompt || null);
   const [isPromptChecked, setIsPromptChecked] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
 
-  const { isLoggedIn, loginWithKakao } = useAuth();
-  const { incrementUsage, usageCount, LIMIT_COUNT } = useRateLimit(isLoggedIn);
+  const { isLoggedIn } = useAuth();
+  const { incrementUsage } = useRateLimit(isLoggedIn);
 
   useEffect(() => {
     if ((window as any).pwaDeferredPrompt) {
@@ -75,9 +76,9 @@ export const OcrUploadZone: React.FC<OcrUploadZoneProps> = ({
               e.preventDefault();
               
               if (!incrementUsage()) {
-                setShowLoginModal(true);
-                return;
-              }
+              onRateLimitExceeded?.();
+              return;
+            }
 
               setPasteNotice(true);
               setTimeout(() => setPasteNotice(false), 3000);
@@ -117,9 +118,9 @@ export const OcrUploadZone: React.FC<OcrUploadZoneProps> = ({
           const file = new File([blob], "pasted_image.png", { type: imageType });
           
           if (!incrementUsage()) {
-            setShowLoginModal(true);
-            return;
-          }
+          onRateLimitExceeded?.();
+          return;
+        }
 
           setPasteNotice(true);
           setTimeout(() => setPasteNotice(false), 3000);
@@ -145,8 +146,7 @@ export const OcrUploadZone: React.FC<OcrUploadZoneProps> = ({
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!incrementUsage()) {
-      setShowLoginModal(true);
-      if (e.target) e.target.value = '';
+      onRateLimitExceeded?.();
       return;
     }
 
@@ -363,39 +363,6 @@ export const OcrUploadZone: React.FC<OcrUploadZoneProps> = ({
         >
           <span className="material-symbols-outlined text-[14px]">smart_toy</span>
           {confidenceBadge.text}
-        </div>
-      )}
-
-      {/* Login Modal for Rate Limit */}
-      {showLoginModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-sm flex flex-col items-center gap-4 text-center shadow-xl animate-in zoom-in-95 duration-200">
-            <div className="w-16 h-16 bg-[#FEE2E2] rounded-full flex items-center justify-center text-[#B91C1C] mb-2">
-              <span className="material-symbols-outlined text-[32px]">lock</span>
-            </div>
-            <h3 className="text-lg font-bold text-[#191C1E]">무료 사용량 초과</h3>
-            <p className="text-sm text-[#5A5E67] leading-relaxed">
-              비로그인 상태로는 하루에 {LIMIT_COUNT}번까지만 사진 분석이 가능해요.<br/>
-              <strong className="text-[#FF7E36]">카카오 로그인 후 무제한으로 이용해보세요!</strong>
-            </p>
-            
-            <button
-              onClick={() => {
-                setShowLoginModal(false);
-                loginWithKakao();
-              }}
-              className="mt-2 w-full py-3.5 bg-[#FEE500] hover:bg-[#FADA0A] text-[#000000] font-bold rounded-xl flex items-center justify-center gap-2 transition-colors"
-            >
-              <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current"><path d="M12 3C6.477 3 2 6.425 2 10.648c0 2.709 1.776 5.093 4.412 6.42-.142.483-.45 1.545-.48 1.666-.037.155.05.155.114.113.082-.053 1.936-1.32 2.721-1.854.41.058.835.09 1.233.09 5.523 0 10-3.425 10-7.648C20 6.425 15.523 3 12 3z"/></svg>
-              카카오로 3초 만에 시작하기
-            </button>
-            <button
-              onClick={() => setShowLoginModal(false)}
-              className="text-xs text-[#8A8F98] underline mt-2 py-1"
-            >
-              다음에 할게요
-            </button>
-          </div>
         </div>
       )}
     </div>

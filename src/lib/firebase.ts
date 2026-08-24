@@ -1,4 +1,4 @@
-import { initializeApp } from "firebase/app";
+import { initializeApp, getApps } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
 import { getFirestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
@@ -14,14 +14,25 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
+// Guard: Only initialize if required config values are present
+const hasRequiredConfig = firebaseConfig.apiKey && firebaseConfig.appId && firebaseConfig.projectId;
 
-// Initialize Firebase services
-// getAnalytics only works in browser environments, so we add a check if needed, 
-// but vite client is always browser
-export const analytics = typeof window !== 'undefined' ? getAnalytics(app) : null;
-export const db = getFirestore(app);
-export const auth = getAuth(app);
+if (!hasRequiredConfig) {
+  console.warn(
+    '[Doghoney] Firebase 환경변수가 설정되지 않았습니다.\n' +
+    '필요한 변수: VITE_FIREBASE_API_KEY, VITE_FIREBASE_APP_ID, VITE_FIREBASE_PROJECT_ID\n' +
+    'Firebase 기능(로그인, 기록 저장)은 비활성화됩니다.'
+  );
+}
+
+// Initialize Firebase (only once, only if config is valid)
+const app = hasRequiredConfig
+  ? (getApps().length > 0 ? getApps()[0] : initializeApp(firebaseConfig))
+  : null;
+
+// Initialize Firebase services (null-safe)
+export const analytics = (app && typeof window !== 'undefined') ? getAnalytics(app) : null;
+export const db = app ? getFirestore(app) : null;
+export const auth = app ? getAuth(app) : null;
 
 export default app;

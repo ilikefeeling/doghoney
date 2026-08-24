@@ -25,6 +25,8 @@ import { TransportView } from './components/TransportView';
 import { ProfileView } from './components/ProfileView';
 import { BottomNavBar, TabKey } from './components/BottomNavBar';
 import { ForceCarSelectModal } from './components/ForceCarSelectModal';
+import { useAuth } from './hooks/useAuth';
+import { useRateLimit } from './hooks/useRateLimit';
 
 // ─── LocalStorage keys ───
 const STORAGE_KEY_HISTORY = 'trunkfit-history';
@@ -34,8 +36,12 @@ export default function App() {
   const location = useLocation();
   const navigate = useNavigate();
 
+  const { isLoggedIn, user, loginWithKakao, logout } = useAuth();
+  const { incrementUsage, LIMIT_COUNT } = useRateLimit(isLoggedIn);
+
   const [activeTab, setActiveTab] = useState<TabKey>('measure');
   const [isAiParsing, setIsAiParsing] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   const [hasSelectedCar, setHasSelectedCar] = useState<boolean>(() => {
     return !!localStorage.getItem(STORAGE_KEY_CAR);
@@ -211,6 +217,12 @@ export default function App() {
 
 
   const recordMeasurementHistory = (itemDims: ItemDimensions, car: CarTrunk) => {
+    // Rate limit check: non-logged-in users get LIMIT_COUNT free scans
+    if (!incrementUsage()) {
+      setShowLoginModal(true);
+      return;
+    }
+
     const record: HistoryRecord = {
       id: `hist-${Date.now()}`,
       timestamp: Date.now(),
@@ -302,6 +314,7 @@ export default function App() {
             <section className="bg-white rounded-2xl ambient-shadow p-5 flex flex-col gap-4 border border-[#EDEEF1]">
               <OcrUploadZone
                 onDimensionsExtracted={handleDimensionsExtracted}
+                onRateLimitExceeded={() => setShowLoginModal(true)}
               />
             </section>
 
@@ -445,6 +458,43 @@ export default function App() {
               </button>
             </div>
 
+            {/* 로그인 상태 표시 */}
+            {isLoggedIn && user ? (
+              <div className="flex items-center gap-3 p-3 bg-[#FFF5F0] rounded-xl border border-[#FFDBCC]">
+                {user.profile_image_url ? (
+                  <img src={user.profile_image_url} alt={user.nickname} className="w-9 h-9 rounded-full object-cover" />
+                ) : (
+                  <div className="w-9 h-9 rounded-full bg-[#FF7E36] flex items-center justify-center">
+                    <span className="material-symbols-outlined text-white text-[18px]">person</span>
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="font-bold text-[13px] text-[#191C1E] truncate">{user.nickname}님</p>
+                  <p className="text-[11px] text-[#FF7E36] font-semibold">무제한 분석 이용 중 ✨</p>
+                </div>
+                <button
+                  onClick={() => { logout(); setIsMenuOpen(false); }}
+                  className="text-[11px] text-[#9EA3AC] underline cursor-pointer"
+                >
+                  로그아웃
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => { setShowLoginModal(true); setIsMenuOpen(false); }}
+                className="flex items-center gap-3 p-3 bg-[#F8F9FC] hover:bg-[#FFF5F0] rounded-xl border border-[#EDEEF1] hover:border-[#FFDBCC] transition-all cursor-pointer text-left"
+              >
+                <div className="w-9 h-9 rounded-full bg-[#F2F3F6] flex items-center justify-center">
+                  <span className="material-symbols-outlined text-[#9EA3AC] text-[18px]">person</span>
+                </div>
+                <div>
+                  <p className="font-bold text-[13px] text-[#191C1E]">카카오 로그인</p>
+                  <p className="text-[11px] text-[#595F67]">무제한 AI 분석 이용하기</p>
+                </div>
+                <span className="material-symbols-outlined text-[#FF7E36] text-[18px] ml-auto">chevron_right</span>
+              </button>
+            )}
+
             <div className="flex flex-col gap-1 text-sm font-semibold">
               <button
                 onClick={() => {
@@ -548,6 +598,42 @@ export default function App() {
           recordMeasurementHistory(dimensions, car);
         }}
       />
+
+      {/* 글로벌 로그인 안내 모달 (비회원 사용량 초과 시) */}
+      {showLoginModal && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-sm flex flex-col items-center gap-4 text-center shadow-xl animate-in slide-in-from-bottom-4 sm:zoom-in-95 duration-200">
+            <div className="w-16 h-16 bg-[#FFF5F0] rounded-full flex items-center justify-center">
+              <span className="text-3xl">🥕</span>
+            </div>
+            <div>
+              <h3 className="text-lg font-extrabold text-[#191C1E]">무료 체험이 끝났어요!</h3>
+              <p className="text-sm text-[#5A5E67] leading-relaxed mt-2">
+                비로그인으로는 하루 <strong className="text-[#FF7E36]">{LIMIT_COUNT}번</strong>까지 AI 분석이 무료예요.<br />
+                카카오 로그인 후 <strong className="text-[#FF7E36]">무제한</strong>으로 이용하세요!
+              </p>
+            </div>
+            <button
+              onClick={() => {
+                setShowLoginModal(false);
+                loginWithKakao();
+              }}
+              className="w-full py-3.5 bg-[#FEE500] hover:bg-[#FADA0A] text-[#000000] font-extrabold rounded-xl flex items-center justify-center gap-2 transition-colors active:scale-95"
+            >
+              <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current">
+                <path d="M12 3C6.477 3 2 6.425 2 10.648c0 2.709 1.776 5.093 4.412 6.42-.142.483-.45 1.545-.48 1.666-.037.155.05.155.114.113.082-.053 1.936-1.32 2.721-1.854.41.058.835.09 1.233.09 5.523 0 10-3.425 10-7.648C20 6.425 15.523 3 12 3z"/>
+              </svg>
+              카카오로 3초 만에 시작하기
+            </button>
+            <button
+              onClick={() => setShowLoginModal(false)}
+              className="text-xs text-[#8A8F98] underline py-1 cursor-pointer"
+            >
+              다음에 할게요
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Bottom Navigation Bar */}
       <BottomNavBar activeTab={activeTab} onTabChange={setActiveTab} />
