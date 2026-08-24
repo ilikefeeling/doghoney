@@ -1,23 +1,48 @@
 {
-  "name": "트렁크핏 TrunkFit",
-  "short_name": "트렁크핏",
+  "id": "/",
+  "name": "개꿀 Doghoney - 당근 가구 트렁크 적재 AI 시뮬레이터",
+  "short_name": "개꿀",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#F8F9FC",
   "theme_color": "#FF7E36",
-  "description": "당근마켓 가구/가전 사진 1장으로 내 차 트렁크 적재 가능 여부를 AI로 판정합니다.",
+  "description": "당근마켓 가구/가전 사진 AI 분석 → 내 차 트렁크 3D 적재 시뮬레이션. 100% 무료!",
+  "categories": ["utilities", "shopping", "lifestyle"],
   "icons": [
     {
-      "src": "/icon-512x512.jpg",
-      "sizes": "512x512",
-      "type": "image/jpeg",
-      "purpose": "any maskable"
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
     },
     {
       "src": "/icon-512x512.jpg",
       "sizes": "192x192",
       "type": "image/jpeg",
       "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512x512.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
     }
-  ]
+  ],
+  "share_target": {
+    "action": "/share-target",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url",
+      "files": [
+        {
+          "name": "images",
+          "accept": ["image/*", "image/jpeg", "image/png", "image/webp", "image/gif"]
+        }
+      ]
+    }
+  }
 }

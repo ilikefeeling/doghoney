@@ -7,6 +7,7 @@ import { ItemDetailPage } from './pages/ItemDetailPage.tsx';
 import { ComparePage } from './pages/ComparePage.tsx';
 import { AdminPage } from './pages/AdminPage.tsx';
 import { ProfilePage } from './pages/ProfilePage.tsx';
+import { ShareTargetPage } from './pages/ShareTargetPage.tsx';
 import './index.css';
 
 // PWA service worker is automatically injected by vite-plugin-pwa
@@ -16,6 +17,7 @@ createRoot(document.getElementById('root')!).render(
     <Router>
       <Switch>
         <RouteComp path="/" element={<App />} />
+        <RouteComp path="/share-target" element={<ShareTargetPage />} />
         <RouteComp path="/car/:carId" element={<CarDetailPage />} />
         <RouteComp path="/item/:presetId" element={<ItemDetailPage />} />
         <RouteComp path="/compare/:car1Id/:car2Id" element={<ComparePage />} />

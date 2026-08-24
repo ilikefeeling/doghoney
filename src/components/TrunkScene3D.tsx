@@ -459,11 +459,11 @@ export const TrunkScene3D: React.FC<TrunkScene3DProps> = ({
       window.Kakao.Share.sendDefault({
         objectType: 'feed',
         content: {
-          title: `트렁크핏 - ${car.model}에 이 물건 들어갈까?`,
-          description: fitResult.status === 'fit' 
+          title: `개꿀 - ${car.model}에 이 물건 들어갈까?`,
+          description: fitResult.status === 'fits' 
             ? '네! 내 차 트렁크에 쏙 들어갑니다. 3D로 확인해보세요.' 
-            : '아쉽지만 안 들어가네요. 3D로 확인해보세요!',
-          imageUrl: 'https://trunkfit.kr/og-image.png',
+            : '3D 시뮬레이션으로 적재 가능 여부를 확인해보세요!',
+          imageUrl: 'https://www.doghoney.xyz/og-image.jpg',
           link: {
             mobileWebUrl: shareUrl,
             webUrl: shareUrl,
@@ -488,9 +488,9 @@ export const TrunkScene3D: React.FC<TrunkScene3DProps> = ({
     if (navigator.share) {
       try {
         await navigator.share({
-          title: `트렁크핏 - ${car.model} 적재 결과`,
-          text: fitResult.status === 'fit' ? '내 차 트렁크에 쏙 들어갑니다! 3D로 확인해보세요.' : '아쉽게도 안 들어가네요ㅠㅠ',
-          url: `https://trunkfit.kr/?carId=${car.id}`,
+          title: `개꿀 - ${car.model} 적재 결과`,
+          text: fitResult.status === 'fits' ? '내 차 트렁크에 쏙 들어갑니다! 3D로 확인해보세요.' : '3D 시뮬레이션으로 확인해보세요!',
+          url: `https://www.doghoney.xyz/?carId=${car.id}`,
         });
       } catch (err) {
         console.log('공유가 취소되었거나 실패했습니다.', err);

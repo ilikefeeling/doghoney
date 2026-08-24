@@ -4,11 +4,7 @@
 
 import { CarTrunk, FitCalculation, ItemDimensions } from '../types';
 
-declare global {
-  interface Window {
-    Kakao?: any;
-  }
-}
+
 
 // Kakao JS Key (can be injected via VITE_KAKAO_JS_KEY or fallback demo key)
 const KAKAO_JS_KEY = (import.meta as any).env?.VITE_KAKAO_JS_KEY || '';

@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { CAR_DATABASE } from '../data/cars';
 import { CarTrunk } from '../types';
 import { getSavedUserProfile, loginWithKakao, logoutUser, saveUserProfile, UserProfile } from '../utils/kakaoAuth';
+import { getDeviceOS } from '../utils/deviceDetector';
+import { ShareGuideModal } from './ShareGuideModal';
 
 interface ProfileViewProps {
   currentCar: CarTrunk;
@@ -12,6 +14,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ currentCar, onSelectCa
   const [user, setUser] = useState<UserProfile>(getSavedUserProfile);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [showAddCarModal, setShowAddCarModal] = useState(false);
+  const [showShareGuideModal, setShowShareGuideModal] = useState(false);
   const [searchCarQuery, setSearchCarQuery] = useState('');
 
   useEffect(() => {
@@ -232,7 +235,32 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ currentCar, onSelectCa
         </a>
       </section>
 
-      {/* 4. Contact & Support */}
+      {/* 4. 기기별 공유 및 PWA 설치 가이드 (OS 자동 감지) */}
+      <section className="bg-white rounded-2xl p-4.5 ambient-shadow border border-[#EDEEF1] flex flex-col gap-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-1.5">
+            <span className="material-symbols-outlined text-[#FF7E36] text-[20px]">share</span>
+            <h3 className="font-bold text-[16px] text-[#191C1E]">당근 1초 공유 & 앱 설치 가이드</h3>
+          </div>
+          <span className="text-[10px] bg-[#FF7E36]/10 text-[#E86016] px-2 py-0.5 rounded-full font-bold">
+            {getDeviceOS() === 'android' ? '🤖 Android' : getDeviceOS() === 'ios' ? '🍏 iOS' : '💻 PC'} 자동 감지
+          </span>
+        </div>
+
+        <p className="text-xs text-[#595F67] leading-relaxed">
+          당근마켓에서 가구 사진을 볼 때 바로 '개꿀'로 공유하여 내 차 트렁크 적재 가능 여부를 3D로 즉시 확인할 수 있습니다.
+        </p>
+
+        <button
+          onClick={() => setShowShareGuideModal(true)}
+          className="w-full bg-gradient-to-r from-[#FF7E36] to-[#E86016] hover:from-[#E86016] hover:to-[#D2500A] text-white font-extrabold py-3 rounded-xl text-xs flex items-center justify-center gap-2 shadow-xs active:scale-98 transition-all cursor-pointer"
+        >
+          <span className="material-symbols-outlined text-[18px]">help_outline</span>
+          내 기기 맞춤 공유 방법 & 테스트 가이드 보기
+        </button>
+      </section>
+
+      {/* 5. Contact & Support */}
       <section className="bg-white rounded-2xl p-4.5 ambient-shadow border border-[#EDEEF1] flex flex-col gap-2.5">
         <div className="flex items-center gap-1.5 mb-1">
           <span className="material-symbols-outlined text-[#FF7E36] text-[20px]">mail</span>
@@ -311,6 +339,12 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ currentCar, onSelectCa
           </div>
         </div>
       )}
+
+      {/* Share Guide Modal */}
+      <ShareGuideModal
+        isOpen={showShareGuideModal}
+        onClose={() => setShowShareGuideModal(false)}
+      />
     </div>
   );
 };

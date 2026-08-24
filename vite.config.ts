@@ -10,18 +10,27 @@ export default defineConfig(() => {
       react(),
       tailwindcss(),
       VitePWA({
+        strategies: 'injectManifest',
+        srcDir: 'src',
+        filename: 'sw.ts',
         registerType: 'autoUpdate',
         devOptions: {
-          enabled: true, // Enable in dev mode for testing Share Target
+          enabled: true,
+          type: 'module',
         },
+        includeAssets: ['favicon.svg', 'apple-touch-icon.png', 'icon-512x512.jpg'],
         manifest: {
-          name: "개꿀 Doghoney",
+          id: '/',
+          name: "개꿀 Doghoney - 당근 가구 트렁크 적재 AI 시뮬레이터",
           short_name: "개꿀",
           description: "당근마켓 가구/가전 사진 AI 분석 → 내 차 트렁크 3D 적재 시뮬레이션. 100% 무료!",
           theme_color: "#FF7E36",
           background_color: "#F8F9FC",
           display: "standalone",
-          start_url: "https://www.doghoney.xyz/",
+          orientation: "portrait",
+          scope: "/",
+          start_url: "/",
+          categories: ["utilities", "shopping", "lifestyle"],
           icons: [
             {
               src: "/favicon.svg",
@@ -42,13 +51,19 @@ export default defineConfig(() => {
             }
           ],
           share_target: {
-            action: "/",
-            method: "GET",
-            enctype: "application/x-www-form-urlencoded",
+            action: "/share-target",
+            method: "POST",
+            enctype: "multipart/form-data",
             params: {
               title: "title",
               text: "text",
-              url: "url"
+              url: "url",
+              files: [
+                {
+                  name: "images",
+                  accept: ["image/*", "image/jpeg", "image/png", "image/webp", "image/gif"]
+                }
+              ]
             }
           }
         }

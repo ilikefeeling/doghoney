@@ -110,9 +110,4 @@ export function useAuth() {
   return { isReady, isLoggedIn, user, loginWithKakao, logout };
 }
 
-// Global Kakao typings (should be placed in a .d.ts in a real project)
-declare global {
-  interface Window {
-    Kakao: any;
-  }
-}
+

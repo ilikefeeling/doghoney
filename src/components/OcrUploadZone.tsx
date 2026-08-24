@@ -7,11 +7,13 @@ import { useRateLimit } from '../hooks/useRateLimit';
 interface OcrUploadZoneProps {
   onDimensionsExtracted: (dims: ItemDimensions, imageSrc?: string) => void;
   onRateLimitExceeded?: () => void;
+  onOpenShareGuide?: () => void;
 }
 
 export const OcrUploadZone: React.FC<OcrUploadZoneProps> = ({
   onDimensionsExtracted,
   onRateLimitExceeded,
+  onOpenShareGuide,
 }) => {
   const [isScanning, setIsScanning] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
@@ -263,10 +265,13 @@ export const OcrUploadZone: React.FC<OcrUploadZoneProps> = ({
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-3">
-            {/* Option 1: PWA Install OR File Upload */}
+            {/* Option 1: PWA Install OR Share Guide */}
             {deferredPrompt ? (
               <div
-                onClick={handlePwaInstall}
+                onClick={() => {
+                  if (onOpenShareGuide) onOpenShareGuide();
+                  else handlePwaInstall();
+                }}
                 className="border-2 border-dashed border-[#DFC0B3] hover:border-[#FF7E36] bg-[#F2F3F6] rounded-2xl p-4 flex flex-col items-center justify-center gap-2 cursor-pointer transition-all hover:bg-[#E1E2E5]/70 active:scale-95 shadow-xs"
               >
                 <div className="w-12 h-12 rounded-full bg-[#FF7E36] text-white flex items-center justify-center shadow-md group-hover:scale-105 transition-transform">
@@ -274,13 +279,14 @@ export const OcrUploadZone: React.FC<OcrUploadZoneProps> = ({
                 </div>
                 <div className="text-center">
                   <p className="font-extrabold text-[14px] text-[#191C1E]">당근 사진 공유하기</p>
-                  <p className="text-[11px] text-[#595F67] mt-0.5">앱 설치하여 1초 만에 공유</p>
+                  <p className="text-[11px] text-[#595F67] mt-0.5">앱 설치 & 공유 가이드</p>
                 </div>
               </div>
             ) : isPromptChecked ? (
               <div
                 onClick={() => {
-                  window.location.href = 'daangn://';
+                  if (onOpenShareGuide) onOpenShareGuide();
+                  else window.location.href = 'daangn://';
                 }}
                 className="relative overflow-hidden border-2 border-dashed border-[#FF7E36] hover:border-[#E86016] bg-[#FFF5F0] rounded-2xl p-4 flex flex-col items-center justify-center gap-2 cursor-pointer transition-all hover:bg-[#FFE8DE] active:scale-95 shadow-xs group"
               >

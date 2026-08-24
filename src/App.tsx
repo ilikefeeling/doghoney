@@ -20,6 +20,7 @@ import { CertificationCardModal } from './components/CertificationCardModal';
 import { TransportModal } from './components/TransportModal';
 import { AlternativeGoodsModal } from './components/AlternativeGoodsModal';
 import { HelpModal } from './components/HelpModal';
+import { ShareGuideModal } from './components/ShareGuideModal';
 import { HistoryView } from './components/HistoryView';
 import { TransportView } from './components/TransportView';
 import { ProfileView } from './components/ProfileView';
@@ -67,15 +68,37 @@ export default function App() {
     } catch { /* ignore */ }
   };
 
-  // Handle incoming router state (e.g. from CarDetailPage or ItemDetailPage) or Web Share Target params
+  const [shareToast, setShareToast] = useState<string | null>(null);
+
+  // Handle incoming router state (e.g. from ShareTargetPage, CarDetailPage, ItemDetailPage) or Web Share Target params
   useEffect(() => {
     // 1. Router state
     if (location.state) {
-      const state = location.state as { selectedCarId?: string };
+      const state = location.state as {
+        selectedCarId?: string;
+        sharedItem?: ItemDimensions;
+        sharedImage?: string;
+        toastMessage?: string;
+      };
+
       if (state.selectedCarId) {
         const foundCar = CAR_DATABASE.find((c) => c.id === state.selectedCarId);
         if (foundCar) setSelectedCar(foundCar);
       }
+
+      if (state.sharedItem) {
+        setDimensions({
+          ...state.sharedItem,
+          image: state.sharedImage || state.sharedItem.image,
+        });
+      }
+
+      if (state.toastMessage) {
+        setShareToast(state.toastMessage);
+        const timer = setTimeout(() => setShareToast(null), 5000);
+        return () => clearTimeout(timer);
+      }
+
       setActiveTab('measure');
     }
 
@@ -161,6 +184,7 @@ export default function App() {
   const [isTransportModalOpen, setIsTransportModalOpen] = useState(false);
   const [isAltModalOpen, setIsAltModalOpen] = useState(false);
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
+  const [isShareGuideModalOpen, setIsShareGuideModalOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isForceCarSelectModalOpen, setIsForceCarSelectModalOpen] = useState(false);
 
@@ -281,6 +305,22 @@ export default function App() {
         onOpenHelp={() => setIsHelpModalOpen(true)}
       />
 
+      {/* Share Target / General Toast Banner */}
+      {shareToast && (
+        <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 w-11/12 max-w-sm bg-[#191C1E] text-white px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border border-white/10 animate-in fade-in slide-in-from-top-4 duration-300">
+          <div className="w-8 h-8 rounded-full bg-[#FF7E36] flex items-center justify-center shrink-0 text-white font-bold shadow-md">
+            <span className="material-symbols-outlined text-lg">check</span>
+          </div>
+          <p className="text-xs font-bold leading-snug flex-1 text-white/95">{shareToast}</p>
+          <button
+            onClick={() => setShareToast(null)}
+            className="text-white/60 hover:text-white p-1 transition-colors"
+          >
+            <span className="material-symbols-outlined text-sm">close</span>
+          </button>
+        </div>
+      )}
+
       {/* Main Content Body */}
       {isAiParsing && (
         <div className="fixed inset-0 bg-white/70 backdrop-blur-sm z-50 flex flex-col items-center justify-center gap-4">
@@ -315,6 +355,7 @@ export default function App() {
               <OcrUploadZone
                 onDimensionsExtracted={handleDimensionsExtracted}
                 onRateLimitExceeded={() => setShowLoginModal(true)}
+                onOpenShareGuide={() => setIsShareGuideModalOpen(true)}
               />
             </section>
 
@@ -548,6 +589,16 @@ export default function App() {
               </button>
               <button
                 onClick={() => {
+                  setIsShareGuideModalOpen(true);
+                  setIsMenuOpen(false);
+                }}
+                className="p-2.5 rounded-xl hover:bg-[#FFF5F0] text-left flex items-center gap-2 cursor-pointer text-[#E86016] font-bold"
+              >
+                <span className="material-symbols-outlined text-[#FF7E36]">share</span>
+                📱 당근 사진 1초 공유 가이드
+              </button>
+              <button
+                onClick={() => {
                   setIsHelpModalOpen(true);
                   setIsMenuOpen(false);
                 }}
@@ -567,6 +618,11 @@ export default function App() {
       )}
 
       {/* Modals */}
+      <ShareGuideModal
+        isOpen={isShareGuideModalOpen}
+        onClose={() => setIsShareGuideModalOpen(false)}
+      />
+
       <CertificationCardModal
         isOpen={isCertModalOpen}
         onClose={() => setIsCertModalOpen(false)}

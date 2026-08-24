@@ -18,8 +18,8 @@ export const TransportView: React.FC<TransportViewProps> = ({ dimensions }) => {
       return { car, fit };
     });
 
-    // Filter to only cars that fit (fits or tight)
-    const validCars = fitResults.filter((r) => r.fit.status !== 'fails');
+    // Filter to only cars that fit (fits or tight or needs_fold)
+    const validCars = fitResults.filter((r) => r.fit.status !== 'over');
 
     // Sort by smallest volume first (cheapest rent)
     validCars.sort((a, b) => a.car.volumeLitersFolded - b.car.volumeLitersFolded);
