@@ -22,7 +22,9 @@ export function KakaoCallbackPage() {
       }
 
       try {
-        const redirectUri = window.location.origin + '/oauth/callback/kakao';
+        const redirectUri = window.location.hostname === 'localhost'
+          ? 'http://localhost:3000/oauth/callback/kakao'
+          : 'https://www.doghoney.xyz/oauth/callback/kakao';
         
         const params = new URLSearchParams();
         params.append('grant_type', 'authorization_code');

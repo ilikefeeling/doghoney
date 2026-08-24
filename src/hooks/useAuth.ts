@@ -117,9 +117,14 @@ export function useAuth() {
       return;
     }
 
-    // 기존 팝업 방식(Kakao.Auth.login) 대신 리다이렉트 방식(Kakao.Auth.authorize) 사용
+    // 모바일 환경이나 다른 도메인(vercel 임시도메인, www 누락 등)에서 
+    // 접속해도 항상 등록된 정식 도메인으로 리다이렉트되도록 고정합니다.
+    const redirectUri = window.location.hostname === 'localhost'
+      ? 'http://localhost:3000/oauth/callback/kakao'
+      : 'https://www.doghoney.xyz/oauth/callback/kakao';
+
     window.Kakao.Auth.authorize({
-      redirectUri: window.location.origin + '/oauth/callback/kakao',
+      redirectUri,
     });
   }, []);
 
