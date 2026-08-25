@@ -191,11 +191,11 @@ export const OcrUploadZone: React.FC<OcrUploadZoneProps> = ({
       setScanMessage('🔍 물품 종류 및 외곽선 분석 중...');
 
       await new Promise((r) => setTimeout(r, 200));
-      setScanMessage('📐 AI가 3D 치수를 계산하고 있습니다...');
+      setScanMessage('📐 사진에서 3D 실측 치수를 분석하고 있습니다...');
 
       const extracted = await extractDimensionsFromImage(file);
 
-      setScanMessage('✅ AI 치수 추출 완료!');
+      setScanMessage('✅ 물품 실측 치수 추출 완료!');
       setAiConfidence(extracted.confidence);
 
       const dims = toItemDimensions(extracted, imgSrc);
@@ -206,21 +206,21 @@ export const OcrUploadZone: React.FC<OcrUploadZoneProps> = ({
         setScanMessage('');
       }, 500);
     } catch (error: any) {
-      console.error('[TrunkFit] AI scan error:', error);
+      console.error('[Doghoney] scan error:', error);
       setIsScanning(false);
       setScanMessage('');
-      setShowErrorModal(error.message || 'AI 분석에 실패했습니다.');
+      setShowErrorModal(error.message || '사진 치수 분석에 실패했습니다.');
     }
   };
 
 
   const confidenceBadge =
     aiConfidence === 'high'
-      ? { text: 'AI 신뢰도: 높음', color: 'bg-[#DCFCE7] text-[#15803D]' }
+      ? { text: '치수 정밀도: 높음', color: 'bg-[#DCFCE7] text-[#15803D]' }
       : aiConfidence === 'medium'
-      ? { text: 'AI 신뢰도: 보통', color: 'bg-[#FEF3C7] text-[#B45309]' }
+      ? { text: '치수 정밀도: 보통', color: 'bg-[#FEF3C7] text-[#B45309]' }
       : aiConfidence === 'low'
-      ? { text: 'AI 신뢰도: 수동 확인 권장', color: 'bg-[#FEE2E2] text-[#B91C1C]' }
+      ? { text: '치수 정밀도: 수동 확인 권장', color: 'bg-[#FEE2E2] text-[#B91C1C]' }
       : null;
 
   return (
@@ -397,7 +397,7 @@ export const OcrUploadZone: React.FC<OcrUploadZoneProps> = ({
                 {showErrorModal.includes('API') 
                   ? '서버 통신 오류가 발생했습니다. (API 키 확인 필요)' 
                   : showErrorModal === 'Empty response from Gemini' 
-                    ? 'AI가 사진에서 물건을 인식하지 못했습니다.' 
+                    ? '사진에서 물품 윤곽을 인식하지 못했습니다.' 
                     : showErrorModal}
               </p>
             </div>
@@ -411,12 +411,12 @@ export const OcrUploadZone: React.FC<OcrUploadZoneProps> = ({
         </div>
       )}
 
-      {/* AI Confidence Badge */}
+      {/* Dimension Confidence Badge */}
       {confidenceBadge && !isScanning && (
         <div
           className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 ${confidenceBadge.color}`}
         >
-          <span className="material-symbols-outlined text-[14px]">smart_toy</span>
+          <span className="material-symbols-outlined text-[14px]">straighten</span>
           {confidenceBadge.text}
         </div>
       )}

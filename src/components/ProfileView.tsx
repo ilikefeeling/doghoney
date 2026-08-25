@@ -284,7 +284,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ currentCar, onSelectCa
         <div className="flex items-center justify-between font-bold text-[#191C1E]">
           <span className="flex items-center gap-1">
             <span className="material-symbols-outlined text-[16px] text-[#FF7E36] fill-1">local_shipping</span>
-            개꿀 (Doghoney) AI 트렁크 시뮬레이터
+            개꿀 (Doghoney) 3D 트렁크 적재 시뮬레이터
           </span>
           <span
             onClick={onOpenAdmin}
@@ -294,7 +294,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ currentCar, onSelectCa
           </span>
         </div>
         <p>• 총 51종 국산 및 수입 전 차종 실측 데이터베이스 탑재</p>
-        <p>• Gemini AI 비전 치수 인식 + Three.js 3D WebGL 시연 엔진</p>
+        <p>• 비전 이미지 치수 인식 + Three.js 3D WebGL 실측 엔진</p>
         <p className="text-[10px] text-[#9EA3AC] mt-1">© 2026 개꿀 Doghoney. All rights reserved.</p>
       </div>
 

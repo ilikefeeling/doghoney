@@ -4,13 +4,15 @@
  */
 
 import React from 'react';
-import { FitCalculation, ItemDimensions } from '../types';
+import { FitCalculation, ItemDimensions, CarTrunk } from '../types';
 import { CommerceRLStore } from '../utils/spatialRL/CommerceRLStore';
+import { TelemetryTracker } from '../utils/analytics/telemetryTracker';
 
 interface AlternativeGoodsModalProps {
   isOpen: boolean;
   onClose: () => void;
   item: ItemDimensions;
+  car?: CarTrunk;
   fitResult?: FitCalculation;
 }
 
@@ -18,6 +20,7 @@ export const AlternativeGoodsModal: React.FC<AlternativeGoodsModalProps> = ({
   isOpen,
   onClose,
   item,
+  car,
   fitResult,
 }) => {
   if (!isOpen) return null;
@@ -30,8 +33,11 @@ export const AlternativeGoodsModal: React.FC<AlternativeGoodsModalProps> = ({
   const searchKeyword = item.coupangKeyword || cleanItemName;
   const searchQuery = encodeURIComponent(searchKeyword);
 
-  const handleClickRec = (keyword: string, strategy: string) => {
+  const handleClickRec = (keyword: string, strategy: string, qScore: number, url: string) => {
     CommerceRLStore.recordFeedback(keyword, strategy, 'click');
+    if (car) {
+      TelemetryTracker.recordCommerceClick(item, car, strategy, keyword, qScore, url);
+    }
   };
 
   return (
@@ -48,9 +54,9 @@ export const AlternativeGoodsModal: React.FC<AlternativeGoodsModalProps> = ({
             <span className="material-symbols-outlined text-[24px]">shopping_cart</span>
             <div>
               <div className="flex items-center gap-1.5">
-                <h3 className="font-bold text-[17px]">🛒 AI 맞춤 쿠팡 1:1 솔루션</h3>
+                <h3 className="font-bold text-[17px]">🛒 트렁크 실측 기반 1:1 맞춤 비교</h3>
                 <span className="text-[10px] bg-white/20 text-white font-bold px-1.5 py-0.2 rounded-full">
-                  1:1 RL 분석
+                  실측 제원 매칭
                 </span>
               </div>
               <p className="text-xs text-white/90">중고 직접 운반 수고 vs 신품 무료 배송 / 안전 키트</p>
@@ -67,10 +73,10 @@ export const AlternativeGoodsModal: React.FC<AlternativeGoodsModalProps> = ({
         {/* List */}
         <div className="p-4 overflow-y-auto flex flex-col gap-3 bg-[#F8F9FC] max-h-[65vh]">
           <div className="p-3 bg-[#FFDBCC]/40 rounded-xl border border-[#FF7E36]/30 text-xs text-[#7A3000]">
-            💡 AI 강화학습 엔진이 적재 상황에 가장 적합한 <strong>1:1 쿠팡 로켓 솔루션</strong>을 매칭했습니다.
+            💡 선택하신 차량의 트렁크 규격과 적재 상태를 분석하여 가장 경제적인 <strong>1:1 맞춤 대안(신품 로켓설치 / DIY 플랫팩 / 고정용품)</strong>을 매칭했습니다.
           </div>
 
-          {/* Dynamic RL Recommendations */}
+          {/* Dynamic Recommendations */}
           {recommendations.map((rec) => (
             <div
               key={rec.id}
@@ -81,7 +87,7 @@ export const AlternativeGoodsModal: React.FC<AlternativeGoodsModalProps> = ({
                   {rec.badge}
                 </span>
                 <span className="text-[11px] font-extrabold text-red-600">
-                  AI 적합도 {rec.qScore}%
+                  실측 적합도 {rec.qScore}%
                 </span>
               </div>
 
@@ -108,7 +114,7 @@ export const AlternativeGoodsModal: React.FC<AlternativeGoodsModalProps> = ({
                 href={rec.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                onClick={() => handleClickRec(rec.keyword, rec.strategy)}
+                onClick={() => handleClickRec(rec.keyword, rec.strategy, rec.qScore, rec.url)}
                 className="mt-1 w-full bg-[#E02020] hover:bg-[#C81818] text-white font-bold py-2.5 rounded-xl text-xs text-center shadow-xs transition-colors flex items-center justify-center gap-1 block"
               >
                 <span className="material-symbols-outlined text-[15px]">shopping_cart</span>

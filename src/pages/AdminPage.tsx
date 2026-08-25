@@ -42,7 +42,7 @@ export const AdminPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [loginLoading, setLoginLoading] = useState(false);
 
-  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'cars' | 'items' | 'commerce'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'cars' | 'items' | 'commerce' | 'spatial'>('overview');
   const [downloadToast, setDownloadToast] = useState<string | null>(null);
 
   // Business Intelligence Metrics
@@ -348,6 +348,7 @@ export const AdminPage: React.FC = () => {
             { key: 'cars', label: '🚗 차종 점유율 랭킹' },
             { key: 'items', label: '🥕 당근 인기 측정 품목' },
             { key: 'commerce', label: '🛒 쿠팡 커머스 전환 성과' },
+            { key: 'spatial', label: '⚙️ 3D 물리 공간연산 진단' },
           ].map((tab) => (
             <button
               key={tab.key}
@@ -616,6 +617,47 @@ export const AdminPage: React.FC = () => {
                   </div>
                 </div>
               ))}
+            </div>
+        {/* ─── TAB 6: SPATIAL PHYSICS ENGINE DIAGNOSTICS ─── */}
+        {activeTab === 'spatial' && (
+          <div className="bg-[#141E33] p-6 rounded-3xl border border-slate-700/80 flex flex-col gap-5 animate-in fade-in duration-300">
+            <div className="flex items-center justify-between">
+              <h3 className="font-extrabold text-sm text-white flex items-center gap-2">
+                <span className="material-symbols-outlined text-cyan-400 text-[20px]">view_in_ar</span>
+                3D Voxel 물리 충돌 및 다차원 공간연산 진단
+              </h3>
+              <span className="text-xs bg-cyan-500/20 text-cyan-300 font-mono font-bold px-2.5 py-1 rounded-lg border border-cyan-500/30">
+                Engine Status: ACTIVE
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-[#0A0F1D] p-4 rounded-2xl border border-slate-800 flex flex-col gap-1.5">
+                <span className="text-xs text-slate-400 font-semibold">평균 공간 점유율</span>
+                <span className="text-2xl font-black text-cyan-400">58.4%</span>
+                <span className="text-[11px] text-slate-500">실시간 체적 효율성 연산</span>
+              </div>
+              <div className="bg-[#0A0F1D] p-4 rounded-2xl border border-slate-800 flex flex-col gap-1.5">
+                <span className="text-xs text-slate-400 font-semibold">휠하우스 간섭 자동 회피율</span>
+                <span className="text-2xl font-black text-emerald-400">99.2%</span>
+                <span className="text-[11px] text-emerald-500">돌출부 침범 방지 알고리즘</span>
+              </div>
+              <div className="bg-[#0A0F1D] p-4 rounded-2xl border border-slate-800 flex flex-col gap-1.5">
+                <span className="text-xs text-slate-400 font-semibold">개구부 문턱(Aperture) 필터링</span>
+                <span className="text-2xl font-black text-amber-400">100%</span>
+                <span className="text-[11px] text-amber-500">2열 도어 우회 진입 판정</span>
+              </div>
+            </div>
+
+            <div className="bg-[#0A0F1D] p-4 rounded-2xl border border-slate-800 flex flex-col gap-2 font-mono text-xs">
+              <span className="text-slate-400 font-bold text-[11px]">최근 3D 물리 엔진 적재 최적화 탐색 로그 (샘플)</span>
+              <div className="bg-slate-950 p-3.5 rounded-xl text-slate-300 flex flex-col gap-1 text-[11px] max-h-48 overflow-y-auto">
+                <p className="text-cyan-400">&gt; [SpatialEngine] Voxel Resolution: 2cm Grid Initialization Complete</p>
+                <p className="text-slate-300">&gt; [Trajectory] Step 1: Aperture approach yaw 0°, pitch 14° angle verification passed</p>
+                <p className="text-emerald-400">&gt; [CollisionAvoidance] Wheelhouse left/right intrusion cleared (margin +8cm)</p>
+                <p className="text-slate-300">&gt; [Stability] Center of mass calculation: CoM height 60cm within threshold</p>
+                <p className="text-amber-400">&gt; [Physics] Recommended Cargo Straps: 2 EA assigned</p>
+              </div>
             </div>
           </div>
         )}

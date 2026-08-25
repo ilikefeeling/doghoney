@@ -152,7 +152,7 @@ export const CertificationCardModal: React.FC<CertificationCardModalProps> = ({
     // Footer
     ctx.fillStyle = '#5A5E67';
     ctx.font = '13px sans-serif';
-    ctx.fillText('개꿀 (Doghoney) AI Smart Measure • 당근마켓 직거래 전용 인증', 110, 700);
+    ctx.fillText('개꿀 (Doghoney) 3D 정밀 실측 • 당근마켓 직거래 전용 인증', 110, 700);
 
     const filename = `당근적재인증_${item.name || '가구'}_${car.model}.png`;
     triggerFileDownload(canvas.toDataURL('image/png'), filename);
@@ -264,7 +264,7 @@ export const CertificationCardModal: React.FC<CertificationCardModalProps> = ({
                 <div className="flex items-center gap-1">
                   {fitResult.spatialRL && (
                     <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full border border-emerald-200">
-                      AI 강화학습 {fitResult.spatialRL.confidence}%
+                      3D 정밀 연산 {fitResult.spatialRL.confidence}%
                     </span>
                   )}
                   <span className="text-[10px] bg-[#FFDBCC] text-[#7A3000] font-bold px-2 py-0.5 rounded-full">

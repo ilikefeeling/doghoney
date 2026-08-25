@@ -16,8 +16,6 @@ import { DimensionInputs } from './components/DimensionInputs';
 import { CarSelector } from './components/CarSelector';
 import { PhysicsToggles } from './components/PhysicsToggles';
 import { TrunkScene3D } from './components/TrunkScene3D';
-import { AiSpatialAnalysisCard } from './components/AiSpatialAnalysisCard';
-import { CoupangSmartRecommender } from './components/CoupangSmartRecommender';
 import { CertificationCardModal } from './components/CertificationCardModal';
 import { TransportModal } from './components/TransportModal';
 import { AlternativeGoodsModal } from './components/AlternativeGoodsModal';
@@ -350,7 +348,7 @@ export default function App() {
       {isAiParsing && (
         <div className="fixed inset-0 bg-white/70 backdrop-blur-sm z-50 flex flex-col items-center justify-center gap-4">
           <div className="w-12 h-12 border-4 border-[#FF7E36] border-t-transparent rounded-full animate-spin"></div>
-          <p className="font-bold text-[#FF7E36] animate-pulse text-center">AI가 당근마켓 상품 크기를<br/>분석하고 있습니다...</p>
+          <p className="font-bold text-[#FF7E36] animate-pulse text-center">당근마켓 상품 크기를<br/>정밀 분석하고 있습니다...</p>
         </div>
       )}
       <main className="px-5 py-4 flex flex-col gap-6 flex-1">
@@ -378,17 +376,6 @@ export default function App() {
               onSelectCar={handleSelectCar}
               onCopyCert={handleOpenCertModal}
             />
-
-            {/* AI Spatial RL Analysis & 3-Step Trajectory Guide */}
-            {fitResult.spatialRL && (
-              <AiSpatialAnalysisCard
-                spatialRL={fitResult.spatialRL}
-                activeTrajectoryStep={activeTrajectoryStep}
-                onSelectTrajectoryStep={setActiveTrajectoryStep}
-                isPlayingTrajectory={isPlayingTrajectory}
-                onTogglePlayTrajectory={() => setIsPlayingTrajectory(!isPlayingTrajectory)}
-              />
-            )}
 
             {/* Multi-Item 3D Tetris Packing Quick Launcher */}
             <button
@@ -441,14 +428,7 @@ export default function App() {
               <DimensionInputs dimensions={dimensions} onChange={(dims) => setDimensions(dims as ItemDimensions)} />
             </section>
 
-            {/* 4. AI Coupang Contextual Commerce RL Recommendation Card */}
-            <CoupangSmartRecommender
-              fitResult={fitResult}
-              item={dimensions}
-              car={selectedCar}
-              onOpenAltModal={() => setIsAltModalOpen(true)}
-            />
-
+            {/* Core Action Tools */}
             <section className="flex flex-col gap-2.5 animate-in fade-in slide-in-from-bottom-2 duration-500">
               {/* Side by side quick tools */}
               <div className="grid grid-cols-2 gap-2.5">
@@ -466,7 +446,7 @@ export default function App() {
                   <span className="text-[11px] text-[#595F67]">다마스 / 라보 견적</span>
                 </button>
 
-                {/* 대체품 찾기 → 쿠팡 파트너스 모달 */}
+                {/* 신품·용품 1:1 비교 (백단 모달) */}
                 <button
                   onClick={() => setIsAltModalOpen(true)}
                   className="bg-white rounded-xl p-4 border border-[#DFC0B3]/80 hover:border-[#FF7E36] flex flex-col items-center justify-center gap-1.5 transition-all group ambient-shadow cursor-pointer active:scale-95"
@@ -479,38 +459,9 @@ export default function App() {
                   <span className="font-bold text-[14px] text-[#191C1E]">
                     신품·용품 전체 비교
                   </span>
-                  <span className="text-[11px] text-[#595F67]">🛒 AI 최저가 매칭</span>
+                  <span className="text-[11px] text-[#595F67]">🛒 1:1 대체재/로켓배송</span>
                 </button>
               </div>
-
-              {/* 3. Tight / Over 판정 시 트렁크 고정용품 (쿠팡 파트너스) */}
-              {(fitResult.status === 'tight' || fitResult.status === 'over') && (
-                <a
-                  href={`https://www.coupang.com/np/search?q=트렁크+고정줄+탄성바${import.meta.env.VITE_COUPANG_AF_ID ? `&affiliateId=${import.meta.env.VITE_COUPANG_AF_ID}` : ''}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="bg-gradient-to-r from-[#2B303A] to-[#191C1E] rounded-xl p-4 flex items-center justify-between group hover:shadow-lg transition-all cursor-pointer mt-1"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-[#FF7E36]/20 flex items-center justify-center">
-                      <span className="material-symbols-outlined text-[22px] text-[#FF7E36]">
-                        build
-                      </span>
-                    </div>
-                    <div>
-                      <p className="text-white font-bold text-[13px]">
-                        트렁크가 덜 닫힐 것 같다면?
-                      </p>
-                      <p className="text-white/60 text-[11px] mt-0.5">
-                        필수 고정용품: 탄력바(고무줄) / 보양 담요
-                      </p>
-                    </div>
-                  </div>
-                  <span className="material-symbols-outlined text-white/50 group-hover:text-white text-[20px]">
-                    arrow_forward
-                  </span>
-                </a>
-              )}
             </section>
           </>
         )}
@@ -598,7 +549,7 @@ export default function App() {
                 </div>
                 <div>
                   <p className="font-bold text-[13px] text-[#191C1E]">카카오 로그인</p>
-                  <p className="text-[11px] text-[#595F67]">무제한 AI 분석 이용하기</p>
+                  <p className="text-[11px] text-[#595F67]">무제한 3D 실측 시뮬레이션</p>
                 </div>
                 <span className="material-symbols-outlined text-[#FF7E36] text-[18px] ml-auto">chevron_right</span>
               </button>
@@ -710,6 +661,7 @@ export default function App() {
         isOpen={isAltModalOpen}
         onClose={() => setIsAltModalOpen(false)}
         item={dimensions}
+        car={selectedCar}
         fitResult={fitResult}
       />
 
@@ -747,7 +699,7 @@ export default function App() {
             <div>
               <h3 className="text-lg font-extrabold text-[#191C1E]">무료 체험이 끝났어요!</h3>
               <p className="text-sm text-[#5A5E67] leading-relaxed mt-2">
-                비로그인으로는 하루 <strong className="text-[#FF7E36]">{LIMIT_COUNT}번</strong>까지 AI 분석이 무료예요.<br />
+                비로그인으로는 하루 <strong className="text-[#FF7E36]">{LIMIT_COUNT}번</strong>까지 3D 실측 시연이 무료예요.<br />
                 카카오 로그인 후 <strong className="text-[#FF7E36]">무제한</strong>으로 이용하세요!
               </p>
             </div>

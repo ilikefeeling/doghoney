@@ -73,11 +73,11 @@ export const ShareTargetPage: React.FC = () => {
 
         const combinedText = `${title} ${text} ${link}`.trim();
 
-        // 2. If Image File is present -> Run AI Gemini Vision extraction
+        // 2. If Image File is present -> Run Vision extraction
         if (imageFile && previewDataUrl) {
           if (isCancelled) return;
           setStatus('analyzing');
-          setStatusMessage('📸 당근 사진 AI 3D 분석 중...');
+          setStatusMessage('📸 당근 사진 3D 실측 분석 중...');
           setDetailMessage('가구/가전의 형태와 치수를 정밀 분석하고 있습니다.');
 
           const extracted = await extractDimensionsFromImage(imageFile);
@@ -90,7 +90,7 @@ export const ShareTargetPage: React.FC = () => {
           if (isCancelled) return;
           setExtractedItem(itemDims);
           setStatus('success');
-          setStatusMessage('✅ AI 치수 추출 완료!');
+          setStatusMessage('✅ 3D 치수 추출 완료!');
           setDetailMessage(`${itemDims.name} (${itemDims.width} × ${itemDims.depth} × ${itemDims.height}cm)`);
 
           // Redirect to 3D simulation with extracted state
@@ -109,11 +109,11 @@ export const ShareTargetPage: React.FC = () => {
           return;
         }
 
-        // 3. If only Text/URL is present -> Run Gemini Text Parser / Regex / Preset lookup
+        // 3. If only Text/URL is present -> Run Text Parser / Regex / Preset lookup
         if (combinedText) {
           if (isCancelled) return;
           setStatus('analyzing');
-          setStatusMessage('📝 공유된 당근 텍스트 AI 분석 중...');
+          setStatusMessage('📝 공유된 당근 텍스트 실측 분석 중...');
           setDetailMessage(`"${combinedText.slice(0, 50)}${combinedText.length > 50 ? '...' : ''}"`);
 
           const extractedDims = await extractDimensionsWithGemini(combinedText);
