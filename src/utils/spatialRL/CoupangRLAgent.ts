@@ -155,7 +155,7 @@ export class CoupangRLAgent {
           ? `🚚 중고 직거래 운반/용달비(5~8만원) 대신, 무료 배송되는 신품이 더 경제적입니다!`
           : `✨ 힘든 직접 운반 수고 없이 문 앞까지 편하게 로켓배송으로 받아보세요.`,
         keyword: newProdKeyword,
-        url: this.buildCoupangUrl(newProdKeyword),
+        url: this.buildCoupangUrl(specificKeyword),
         qScore: Math.min(100, Math.round(qNewProduct)),
         icon: 'rocket_launch',
         costSavingsLabel: savings,
@@ -199,7 +199,7 @@ export class CoupangRLAgent {
         benefit: compactBenefit,
         hook: `💡 완제품은 차에 싣기 힘들어도, 접이식/컴팩트 규격은 내 차에 여유롭게 실립니다!`,
         keyword: compactKeyword,
-        url: this.buildCoupangUrl(compactKeyword),
+        url: this.buildCoupangUrl(specificKeyword),
         qScore: Math.min(100, Math.round(qCompact)),
         icon: 'inventory_2',
         costSavingsLabel: '📦 용달 부를 필요 없이 내 차로 100% 수납',
