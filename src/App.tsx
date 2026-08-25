@@ -375,6 +375,7 @@ export default function App() {
               onTogglePlayTrajectory={() => setIsPlayingTrajectory(!isPlayingTrajectory)}
               onSelectCar={handleSelectCar}
               onCopyCert={handleOpenCertModal}
+              onOpenAltModal={() => setIsAltModalOpen(true)}
             />
 
             {/* Multi-Item 3D Tetris Packing Quick Launcher */}
@@ -428,40 +429,43 @@ export default function App() {
               <DimensionInputs dimensions={dimensions} onChange={(dims) => setDimensions(dims as ItemDimensions)} />
             </section>
 
-            {/* Core Action Tools */}
+            {/* Core Action Tools (1순위: 대체품/신품 비교, 후순위: 용달) */}
             <section className="flex flex-col gap-2.5 animate-in fade-in slide-in-from-bottom-2 duration-500">
-              {/* Side by side quick tools */}
-              <div className="grid grid-cols-2 gap-2.5">
-                {/* 용달 부르기 */}
-                <button
-                  onClick={() => setIsTransportModalOpen(true)}
-                  className="bg-white rounded-xl p-4 border border-[#DFC0B3]/80 hover:border-[#FF7E36] flex flex-col items-center justify-center gap-1.5 transition-all group ambient-shadow cursor-pointer active:scale-95"
-                >
-                  <div className="bg-[#F2F3F6] p-2.5 rounded-full group-hover:bg-[#FFDBCC] transition-colors">
-                    <span className="material-symbols-outlined text-[#191C1E] group-hover:text-[#FF7E36] text-[22px]">
-                      local_shipping
-                    </span>
+              {/* 1st Priority: 신품 가격 비교 */}
+              <button
+                onClick={() => setIsAltModalOpen(true)}
+                className="w-full bg-gradient-to-r from-[#FF7E36] to-[#FFA066] hover:from-[#E0601A] hover:to-[#FF7E36] text-white rounded-2xl p-4 flex items-center justify-between shadow-md active:scale-98 transition-all cursor-pointer border border-[#FF7E36]/30"
+              >
+                <div className="flex items-center gap-3 text-left">
+                  <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-white shrink-0">
+                    <span className="material-symbols-outlined text-[24px]">shopping_bag</span>
                   </div>
-                  <span className="font-bold text-[14px] text-[#191C1E]">용달 부르기</span>
-                  <span className="text-[11px] text-[#595F67]">다마스 / 라보 견적</span>
-                </button>
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-extrabold text-[15px] text-white">신품 가격 비교</span>
+                      <span className="text-[9.5px] bg-white text-[#C2410C] font-black px-1.5 py-0.2 rounded-full">
+                        1순위
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-white/90 mt-0.5">
+                      해당 물품의 신품 최저가 및 대안 상품 1:1 매칭
+                    </p>
+                  </div>
+                </div>
+                <span className="material-symbols-outlined text-white text-[20px]">chevron_right</span>
+              </button>
 
-                {/* 신품·용품 1:1 비교 (백단 모달) */}
-                <button
-                  onClick={() => setIsAltModalOpen(true)}
-                  className="bg-white rounded-xl p-4 border border-[#DFC0B3]/80 hover:border-[#FF7E36] flex flex-col items-center justify-center gap-1.5 transition-all group ambient-shadow cursor-pointer active:scale-95"
-                >
-                  <div className="bg-[#F2F3F6] p-2.5 rounded-full group-hover:bg-[#FFDBCC] transition-colors">
-                    <span className="material-symbols-outlined text-[#191C1E] group-hover:text-[#FF7E36] text-[22px]">
-                      shopping_bag
-                    </span>
-                  </div>
-                  <span className="font-bold text-[14px] text-[#191C1E]">
-                    신품·용품 전체 비교
-                  </span>
-                  <span className="text-[11px] text-[#595F67]">🛒 1:1 대체재/로켓배송</span>
-                </button>
-              </div>
+              {/* 3rd/4th Priority: 용달 견적 (라보/다마스) */}
+              <button
+                onClick={() => setIsTransportModalOpen(true)}
+                className="bg-white rounded-xl p-3 border border-[#EDEEF1] hover:border-slate-300 flex items-center justify-between transition-all cursor-pointer active:scale-98 text-left"
+              >
+                <div className="flex items-center gap-2.5">
+                  <span className="material-symbols-outlined text-[#6B7280] text-[18px]">local_shipping</span>
+                  <span className="font-semibold text-[12px] text-[#4B5563]">다마스 / 라보 용달 견적 확인</span>
+                </div>
+                <span className="material-symbols-outlined text-[#9EA3AC] text-[16px]">chevron_right</span>
+              </button>
             </section>
           </>
         )}
@@ -663,6 +667,7 @@ export default function App() {
         item={dimensions}
         car={selectedCar}
         fitResult={fitResult}
+        onOpenTransportModal={() => setIsTransportModalOpen(true)}
       />
 
       <MultiItemPackingModal

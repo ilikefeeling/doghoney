@@ -14,6 +14,7 @@ interface AlternativeGoodsModalProps {
   item: ItemDimensions;
   car?: CarTrunk;
   fitResult?: FitCalculation;
+  onOpenTransportModal?: () => void;
 }
 
 export const AlternativeGoodsModal: React.FC<AlternativeGoodsModalProps> = ({
@@ -22,6 +23,7 @@ export const AlternativeGoodsModal: React.FC<AlternativeGoodsModalProps> = ({
   item,
   car,
   fitResult,
+  onOpenTransportModal,
 }) => {
   if (!isOpen) return null;
 
@@ -144,6 +146,26 @@ export const AlternativeGoodsModal: React.FC<AlternativeGoodsModalProps> = ({
               오늘의집 최저가 비교 →
             </a>
           </div>
+
+          {/* 4th Fallback: 용달 옵션 (최후 대안) */}
+          {onOpenTransportModal && (
+            <div className="bg-[#F8F9FC] p-3 rounded-2xl border border-dashed border-[#D1D5DB] flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-[18px] text-[#6B7280]">local_shipping</span>
+                <span className="text-xs text-[#4B5563]">다마스 / 라보 용달 견적</span>
+              </div>
+              <button
+                onClick={() => {
+                  onClose();
+                  onOpenTransportModal();
+                }}
+                className="text-xs font-bold text-[#FF7E36] hover:underline flex items-center gap-0.5 cursor-pointer"
+              >
+                <span>용달 견적 보기</span>
+                <span className="material-symbols-outlined text-[14px]">chevron_right</span>
+              </button>
+            </div>
+          )}
 
           {/* 쿠팡 파트너스 면책 고지 */}
           <p className="text-[9px] text-[#9EA3AC] text-center px-2 leading-relaxed">

@@ -583,6 +583,7 @@ interface TrunkScene3DProps {
   onTogglePlayTrajectory?: () => void;
   onSelectCar?: (car: CarTrunk) => void;
   onCopyCert?: () => void;
+  onOpenAltModal?: () => void;
 }
 
 export const TrunkScene3D: React.FC<TrunkScene3DProps> = ({
@@ -596,6 +597,7 @@ export const TrunkScene3D: React.FC<TrunkScene3DProps> = ({
   onTogglePlayTrajectory,
   onSelectCar,
   onCopyCert,
+  onOpenAltModal,
 }) => {
   const [isCarModalOpen, setIsCarModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -737,6 +739,23 @@ export const TrunkScene3D: React.FC<TrunkScene3DProps> = ({
     }
   };
 
+  const cleanItemName = item.name
+    ? item.name
+        .replace(/\s*\(AI 표준 규격 추정\)/g, '')
+        .replace(/\s*\(수동 입력 필요\)/g, '')
+        .replace(/\s*\(.*?규격.*?\)/g, '')
+        .trim()
+    : '물품';
+
+  const getItemIcon = (name: string) => {
+    if (/tv|모니터|가전|전자|오븐|냉장고|세탁기|청소기|식세기|건조기/i.test(name)) return 'tv';
+    if (/유모차|카시트|아기침대|장난감|붕붕카|미끄럼틀/i.test(name)) return 'child_friendly';
+    if (/캠핑|텐트|쉘프|테이블|자전거|골프|운동|헬스|매트/i.test(name)) return 'sports_score';
+    return 'inventory_2';
+  };
+
+  const dynamicIcon = getItemIcon(cleanItemName);
+
   return (
     <section className="bg-white rounded-2xl ambient-shadow overflow-hidden flex flex-col border border-[#EDEEF1]">
       {/* Header */}
@@ -871,6 +890,63 @@ export const TrunkScene3D: React.FC<TrunkScene3DProps> = ({
           </span>
         </div>
       </div>
+
+      {/* Dynamic Psychology Behavioral Nudge (적재 불가 / 공간 타이트 시 즉시 발동) */}
+      {(status === 'over' || status === 'tight') && onOpenAltModal && (
+        <div className="p-3 bg-[#F8F9FC] border-t border-[#EDEEF1]">
+          <div
+            onClick={onOpenAltModal}
+            className={`p-3.5 rounded-2xl transition-all border shadow-xs flex flex-col gap-2.5 cursor-pointer hover:shadow-md active:scale-[0.99] group ${
+              status === 'over'
+                ? 'bg-gradient-to-br from-red-50/90 via-white to-orange-50/70 border-red-200 hover:border-red-300'
+                : 'bg-gradient-to-br from-amber-50/90 via-white to-orange-50/70 border-amber-200 hover:border-amber-300'
+            }`}
+          >
+            <div className="flex items-start gap-2.5">
+              <div
+                className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 shadow-xs ${
+                  status === 'over' ? 'bg-[#E02020] text-white' : 'bg-[#D97706] text-white'
+                }`}
+              >
+                <span className="material-symbols-outlined text-[20px]">
+                  {dynamicIcon}
+                </span>
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-1.5">
+                  <span
+                    className={`text-[10px] font-extrabold px-1.5 py-0.2 rounded-md ${
+                      status === 'over'
+                        ? 'bg-red-100 text-red-700 border border-red-200'
+                        : 'bg-amber-100 text-amber-800 border border-amber-200'
+                    }`}
+                  >
+                    1:1 신품 비교
+                  </span>
+                  <span className="text-[10px] font-bold text-[#FF7E36]">무료배송 매칭</span>
+                </div>
+                <h4 className="font-extrabold text-[13.5px] text-[#191C1E] mt-1 leading-snug">
+                  '{cleanItemName}' 신품 가격 비교
+                </h4>
+                <p className="text-[11px] text-[#595F67] mt-0.5 leading-tight">
+                  해당 물품의 신품 최저가 및 1:1 대안 상품을 비교합니다.
+                </p>
+              </div>
+            </div>
+
+            <div
+              className={`w-full py-2.5 px-3 rounded-xl text-white font-extrabold text-xs flex items-center justify-center gap-1.5 transition-all shadow-xs ${
+                status === 'over'
+                  ? 'bg-[#E02020] group-hover:bg-[#C81818]'
+                  : 'bg-[#D97706] group-hover:bg-[#B45309]'
+              }`}
+            >
+              <span className="material-symbols-outlined text-[16px]">shopping_bag</span>
+              <span>'{cleanItemName}' 신품 가격 비교하기 →</span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Action Buttons */}
       <div className="bg-white p-3 border-t border-[#EDEEF1] flex flex-col gap-2">
