@@ -36,8 +36,8 @@ export const ComparePage: React.FC = () => {
           <span>시뮬레이터로 이동</span>
         </button>
         <Link to="/" className="flex items-center gap-1.5 font-extrabold text-[#FF7E36]">
-          <span>🥕</span>
-          <span>TrunkFit</span>
+          <span className="material-symbols-outlined text-[20px] fill-1">local_shipping</span>
+          <span>개꿀 Doghoney</span>
         </Link>
       </header>
 

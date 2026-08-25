@@ -26,12 +26,12 @@ export const TransportModal: React.FC<TransportModalProps> = ({ isOpen, onClose,
 
   const handleCallTransport = () => {
     // Copy quote text and open transport service
-    const quoteText = `[TrunkFit 용달 견적]\n물품: ${item.name || '가구/가전'} (${item.width}×${item.depth}×${item.height}cm)\n거리: ${distanceKm}km\n예상 비용: ${estimatedTotal.toLocaleString()}원 (라보 기준)\n도움: ${hasHelper ? '기사님 상하차 도움' : '운전만'}\n엘리베이터: ${hasElevator ? '있음' : '없음 (계단)'}`;
+    const quoteText = `[개꿀 Doghoney 용달 견적]\n물품: ${item.name || '가구/가전'} (${item.width}×${item.depth}×${item.height}cm)\n거리: ${distanceKm}km\n예상 비용: ${estimatedTotal.toLocaleString()}원 (라보 기준)\n도움: ${hasHelper ? '기사님 상하차 도움' : '운전만'}\n엘리베이터: ${hasElevator ? '있음' : '없음 (계단)'}`;
 
     // Try Web Share API first
     if (navigator.share) {
       navigator.share({
-        title: 'TrunkFit 용달 견적',
+        title: '개꿀 Doghoney 용달 견적',
         text: quoteText,
       }).catch(() => {});
     } else {

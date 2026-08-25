@@ -99,7 +99,7 @@ export const CertificationCardModal: React.FC<CertificationCardModalProps> = ({
     // Title
     ctx.fillStyle = '#FFFFFF';
     ctx.font = 'bold 28px sans-serif';
-    ctx.fillText('🥕 TrunkFit 당근 적재 인증서', 30, 60);
+    ctx.fillText('🥕 개꿀 Doghoney 당근 적재 인증서', 30, 60);
 
     ctx.font = '16px sans-serif';
     ctx.fillText('중고거래 가구·가전 차량 트렁크 적재 시뮬레이션 완료', 30, 95);
@@ -152,7 +152,7 @@ export const CertificationCardModal: React.FC<CertificationCardModalProps> = ({
     // Footer
     ctx.fillStyle = '#5A5E67';
     ctx.font = '13px sans-serif';
-    ctx.fillText('TrunkFit AI Smart Measure • 당근마켓 직거래 전용 인증', 140, 700);
+    ctx.fillText('개꿀 (Doghoney) AI Smart Measure • 당근마켓 직거래 전용 인증', 110, 700);
 
     const filename = `당근적재인증_${item.name || '가구'}_${car.model}.png`;
     triggerFileDownload(canvas.toDataURL('image/png'), filename);
@@ -259,7 +259,7 @@ export const CertificationCardModal: React.FC<CertificationCardModalProps> = ({
                   <span className="w-6 h-6 rounded-md bg-[#FF7E36] text-white flex items-center justify-center text-xs font-black">
                     🥕
                   </span>
-                  <span className="font-extrabold text-[15px] text-[#191C1E]">TrunkFit 인증서</span>
+                  <span className="font-extrabold text-[15px] text-[#191C1E]">개꿀 Doghoney 인증서</span>
                 </div>
                 <div className="flex items-center gap-1">
                   {fitResult.spatialRL && (

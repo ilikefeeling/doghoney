@@ -84,13 +84,13 @@ export const AdminAnalyticsModal: React.FC<AdminAnalyticsModalProps> = ({ isOpen
   const handleExportMeasurements = () => {
     const csv = TelemetryTracker.exportMeasurementsCSV();
     const dateStr = new Date().toISOString().slice(0, 10);
-    triggerDownload(csv, `TrunkFit_측정데이터_${dateStr}.csv`);
+    triggerDownload(csv, `개꿀_측정데이터_${dateStr}.csv`);
   };
 
   const handleExportCommerce = () => {
     const csv = TelemetryTracker.exportCommerceClicksCSV();
     const dateStr = new Date().toISOString().slice(0, 10);
-    triggerDownload(csv, `TrunkFit_쿠팡전환데이터_${dateStr}.csv`);
+    triggerDownload(csv, `개꿀_쿠팡전환데이터_${dateStr}.csv`);
   };
 
   return (
@@ -112,7 +112,7 @@ export const AdminAnalyticsModal: React.FC<AdminAnalyticsModalProps> = ({ isOpen
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="font-extrabold text-[16px] text-white tracking-tight">
-                  {isAuthenticated ? '관리자 마케팅 & BI 대시보드' : '관리자 보안 인증 (Admin Gate)'}
+                  {isAuthenticated ? '개꿀 (Doghoney) BI 대시보드' : '개꿀 (Doghoney) 관리자 보안 인증'}
                 </h3>
                 <span className="text-[10px] bg-orange-500/20 text-orange-400 font-bold px-2 py-0.5 rounded-full border border-orange-500/30">
                   {isAuthenticated ? 'AUTHORIZED' : 'PROTECTED'}

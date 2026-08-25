@@ -183,19 +183,19 @@ export const AdminPage: React.FC = () => {
     ]);
     const csvContent = '\uFEFF' + [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
     const dateStr = new Date().toISOString().slice(0, 10);
-    triggerDownload(csvContent, `TrunkFit_회원목록_${dateStr}.csv`);
+    triggerDownload(csvContent, `개꿀_회원목록_${dateStr}.csv`);
   };
 
   const handleExportMeasurements = () => {
     const csv = TelemetryTracker.exportMeasurementsCSV();
     const dateStr = new Date().toISOString().slice(0, 10);
-    triggerDownload(csv, `TrunkFit_측정데이터_${dateStr}.csv`);
+    triggerDownload(csv, `개꿀_측정데이터_${dateStr}.csv`);
   };
 
   const handleExportCommerce = () => {
     const csv = TelemetryTracker.exportCommerceClicksCSV();
     const dateStr = new Date().toISOString().slice(0, 10);
-    triggerDownload(csv, `TrunkFit_쿠팡전환데이터_${dateStr}.csv`);
+    triggerDownload(csv, `개꿀_쿠팡전환데이터_${dateStr}.csv`);
   };
 
   // ─── 1. ACCESS DENIED / LOGIN GATE VIEW ───
@@ -210,7 +210,7 @@ export const AdminPage: React.FC = () => {
             </div>
             <div>
               <div className="flex items-center justify-center gap-2">
-                <h1 className="text-xl font-black text-white tracking-tight">TrunkFit 관리자 센터</h1>
+                <h1 className="text-xl font-black text-white tracking-tight">개꿀 (Doghoney) 관리자 센터</h1>
                 <span className="text-[10px] bg-orange-500/20 text-orange-400 font-bold px-2 py-0.5 rounded-full border border-orange-500/30">
                   PROTECTED
                 </span>
@@ -306,7 +306,7 @@ export const AdminPage: React.FC = () => {
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-black text-base text-white tracking-tight">TrunkFit BI 대시보드</span>
+              <span className="font-black text-base text-white tracking-tight">개꿀 (Doghoney) BI 대시보드</span>
               <span className="text-[10px] bg-emerald-500/20 text-emerald-400 font-extrabold px-2 py-0.5 rounded-full border border-emerald-500/30">
                 MASTER AUTHORIZED
               </span>

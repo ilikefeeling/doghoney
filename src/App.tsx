@@ -554,10 +554,10 @@ export default function App() {
           <div className="bg-white w-4/5 max-w-xs h-full p-5 flex flex-col gap-4 shadow-2xl animate-in slide-in-from-left duration-200">
             <div className="flex items-center justify-between pb-3 border-b border-[#EDEEF1]">
               <div className="flex items-center gap-2">
-                <span className="w-7 h-7 rounded-lg bg-[#FF7E36] text-white flex items-center justify-center text-sm font-black">
-                  🥕
+                <span className="w-7 h-7 rounded-lg bg-[#FF7E36] text-white flex items-center justify-center text-sm font-black shadow-xs">
+                  <span className="material-symbols-outlined text-[18px] fill-1">local_shipping</span>
                 </span>
-                <span className="font-extrabold text-[18px] text-[#191C1E]">TrunkFit 메뉴</span>
+                <span className="font-extrabold text-[18px] text-[#191C1E]">개꿀 <span className="text-xs text-[#FF7E36] font-['Be_Vietnam_Pro'] font-bold">Doghoney</span></span>
               </div>
               <button
                 onClick={() => setIsMenuOpen(false)}
@@ -678,8 +678,8 @@ export default function App() {
             </div>
 
             <div className="mt-auto pt-4 border-t border-[#EDEEF1] text-xs text-[#595F67]">
-              <p>TrunkFit • 당근마켓 직거래 필수앱</p>
-              <p className="text-[10px] mt-1 text-[#9EA3AC]">© 2026 TrunkFit AI All rights reserved.</p>
+              <p>개꿀 Doghoney • 당근마켓 직거래 필수앱</p>
+              <p className="text-[10px] mt-1 text-[#9EA3AC]">© 2026 개꿀 Doghoney. All rights reserved.</p>
             </div>
           </div>
         </div>
