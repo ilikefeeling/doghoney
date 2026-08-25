@@ -1,14 +1,20 @@
+/**
+ * @license
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import React, { useRef, useMemo, useEffect, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { OrbitControls, Text, RoundedBox, Grid, Environment } from '@react-three/drei';
+import { OrbitControls, Text, RoundedBox, Grid, Line } from '@react-three/drei';
 import * as THREE from 'three';
 import { CarTrunk, FitCalculation, ItemDimensions } from '../types';
+import { CAR_DATABASE } from '../data/cars';
 
-// ─── 3D Scale: convert real cm to Three.js units (1 unit = 10 cm) ───
-const S = 0.01; // 1cm = 0.01 units → 100cm = 1 unit
+// ─── 3D Scale: convert real cm to Three.js units (1 unit = 100 cm) ───
+const S = 0.01;
 
 // ─── Scene Recorder for WebM ───
-function SceneRecorder({ onRecordComplete, trigger }: { onRecordComplete: (b: Blob) => void, trigger: string }) {
+function SceneRecorder({ onRecordComplete, trigger }: { onRecordComplete: (b: Blob) => void; trigger: string }) {
   const { gl } = useThree();
 
   useEffect(() => {
@@ -30,7 +36,6 @@ function SceneRecorder({ onRecordComplete, trigger }: { onRecordComplete: (b: Bl
 
       recorder.start();
 
-      // Record for 2.5s to capture the falling animation
       const timer = setTimeout(() => {
         if (recorder.state === 'recording') recorder.stop();
       }, 2500);
@@ -40,20 +45,22 @@ function SceneRecorder({ onRecordComplete, trigger }: { onRecordComplete: (b: Bl
         if (recorder.state === 'recording') recorder.stop();
       };
     } catch (err) {
-      console.warn("MediaRecorder is not supported or failed to start", err);
+      console.warn('MediaRecorder is not supported or failed to start', err);
     }
   }, [gl, onRecordComplete, trigger]);
 
   return null;
 }
 
-// ─── Trunk wireframe box ───
+// ─── Trunk wireframe box with Wheelhouse Obstacles & Tailgate Aperture Frame ───
 function TrunkBox({
   car,
   isFolded,
+  fitResult,
 }: {
   car: CarTrunk;
   isFolded: boolean;
+  fitResult?: FitCalculation;
 }) {
   const activeDepth = isFolded ? car.depthFolded : car.depth;
   const w = car.width * S;
@@ -61,6 +68,16 @@ function TrunkBox({
   const h = car.height * S;
 
   const normalDepth = car.depth * S;
+  const isApertureBreached = fitResult?.spatialRL?.apertureBreach || false;
+
+  // Wheelhouse obstacle dimensions
+  const whW = Math.min(15, car.width * 0.12) * S;
+  const whH = Math.min(26, car.height * 0.35) * S;
+  const whD = Math.min(50, activeDepth * 0.35) * S;
+  const whZ = isFolded ? -activeDepth * 0.15 * S : 0;
+
+  const opW = car.openingWidth * S;
+  const opH = car.openingHeight * S;
 
   return (
     <group position={[0, h / 2, 0]}>
@@ -96,38 +113,154 @@ function TrunkBox({
         </mesh>
       )}
 
+      {/* Left Wheelhouse Visualizer */}
+      <group position={[-w / 2 + whW / 2, -h / 2 + whH / 2, whZ]}>
+        <mesh>
+          <boxGeometry args={[whW, whH, whD]} />
+          <meshStandardMaterial color="#64748B" transparent opacity={0.22} />
+        </mesh>
+        <lineSegments>
+          <edgesGeometry args={[new THREE.BoxGeometry(whW, whH, whD)]} />
+          <lineBasicMaterial color="#94A3B8" transparent opacity={0.6} />
+        </lineSegments>
+      </group>
+
+      {/* Right Wheelhouse Visualizer */}
+      <group position={[w / 2 - whW / 2, -h / 2 + whH / 2, whZ]}>
+        <mesh>
+          <boxGeometry args={[whW, whH, whD]} />
+          <meshStandardMaterial color="#64748B" transparent opacity={0.22} />
+        </mesh>
+        <lineSegments>
+          <edgesGeometry args={[new THREE.BoxGeometry(whW, whH, whD)]} />
+          <lineBasicMaterial color="#94A3B8" transparent opacity={0.6} />
+        </lineSegments>
+      </group>
+
       {/* Trunk floor */}
       <mesh position={[0, -h / 2 + 0.001, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <planeGeometry args={[w, d]} />
         <meshStandardMaterial color="#E1E2E5" transparent opacity={0.35} side={THREE.DoubleSide} />
       </mesh>
 
-      {/* Tailgate opening indicator (back face) */}
-      <mesh position={[0, 0, d / 2 + 0.002]}>
-        <planeGeometry args={[car.openingWidth * S, car.openingHeight * S]} />
-        <meshStandardMaterial
-          color="#FF7E36"
-          transparent
-          opacity={0.06}
-          side={THREE.DoubleSide}
-          depthWrite={false}
-        />
+      {/* Tailgate Opening Aperture Frame */}
+      <group position={[0, 0, d / 2 + 0.002]}>
+        <mesh>
+          <planeGeometry args={[opW, opH]} />
+          <meshStandardMaterial
+            color={isApertureBreached ? '#FF2222' : '#FF7E36'}
+            transparent
+            opacity={isApertureBreached ? 0.22 : 0.06}
+            side={THREE.DoubleSide}
+            depthWrite={false}
+          />
+        </mesh>
+        <lineSegments>
+          <edgesGeometry args={[new THREE.BoxGeometry(opW, opH, 0.01)]} />
+          <lineBasicMaterial
+            color={isApertureBreached ? '#FF2222' : '#FF7E36'}
+            linewidth={2}
+            transparent
+            opacity={isApertureBreached ? 0.95 : 0.5}
+          />
+        </lineSegments>
+
+        {isApertureBreached && (
+          <Text
+            position={[0, opH / 2 + 0.05, 0.02]}
+            fontSize={0.038}
+            color="#FF2222"
+            anchorX="center"
+            anchorY="bottom"
+            outlineWidth={0.003}
+            outlineColor="#FFFFFF"
+          >
+            🚨 개구부 통과 불가 (트렁크 입구 좁음)
+          </Text>
+        )}
+      </group>
+    </group>
+  );
+}
+
+// ─── 3D Trajectory Spline Path ───
+function TrajectorySpline({
+  fitResult,
+}: {
+  fitResult: FitCalculation;
+}) {
+  const points = useMemo(() => {
+    if (!fitResult.spatialRL?.trajectorySteps || fitResult.status === 'over') return null;
+    const steps = fitResult.spatialRL.trajectorySteps;
+    const pts = steps.map((s) => new THREE.Vector3(s.position[0], s.position[1], s.position[2]));
+    const curve = new THREE.CatmullRomCurve3(pts);
+    return curve.getPoints(30);
+  }, [fitResult]);
+
+  if (!points) return null;
+
+  return (
+    <Line
+      points={points}
+      color="#FF7E36"
+      lineWidth={2}
+      dashed
+      dashScale={50}
+      dashSize={0.03}
+      gapSize={0.02}
+      transparent
+      opacity={0.7}
+    />
+  );
+}
+
+// ─── Center of Gravity (CoG) Indicator ───
+function CenterOfGravityMarker({
+  itemPos,
+  itemH,
+}: {
+  itemPos: [number, number, number];
+  itemH: number;
+}) {
+  const markerRef = useRef<THREE.Group>(null);
+
+  useFrame(({ clock }) => {
+    if (markerRef.current) {
+      markerRef.current.rotation.y = clock.getElapsedTime() * 1.5;
+    }
+  });
+
+  return (
+    <group ref={markerRef} position={[itemPos[0], itemPos[1], itemPos[2]]}>
+      {/* CoG Glowing Sphere */}
+      <mesh>
+        <sphereGeometry args={[0.018, 16, 16]} />
+        <meshStandardMaterial color="#00D4AA" emissive="#00D4AA" emissiveIntensity={0.6} />
+      </mesh>
+      {/* Projected Ground Target Shadow */}
+      <mesh position={[0, -itemPos[1] + 0.002, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[0.025, 0.045, 24]} />
+        <meshBasicMaterial color="#00D4AA" transparent opacity={0.4} side={THREE.DoubleSide} />
       </mesh>
     </group>
   );
 }
 
-// ─── Animated cargo item ───
+// ─── Animated cargo item with Spatial RL Trajectory Support ───
 function CargoItem({
   item,
   fitResult,
   car,
   isFolded,
+  activeTrajectoryStep,
+  isPlayingTrajectory,
 }: {
   item: ItemDimensions;
   fitResult: FitCalculation;
   car: CarTrunk;
   isFolded: boolean;
+  activeTrajectoryStep: number;
+  isPlayingTrajectory: boolean;
 }) {
   const meshRef = useRef<THREE.Mesh>(null);
   const [animProgress, setAnimProgress] = useState(0);
@@ -150,15 +283,13 @@ function CargoItem({
     }
   }, [item.image]);
 
-  const { bestOrientation, status } = fitResult;
+  const { bestOrientation, status, spatialRL } = fitResult;
   const bw = bestOrientation.w * S;
   const bd = bestOrientation.d * S;
   const bh = bestOrientation.h * S;
 
-  const trunkH = car.height * S;
   const isOver = status === 'over';
 
-  // Color based on fit status
   const itemColor = useMemo(() => {
     switch (status) {
       case 'fits':
@@ -172,46 +303,64 @@ function CargoItem({
     }
   }, [status]);
 
-  // Reset animation when item or car changes
+  // Reset animation progress on changes
   useEffect(() => {
     setAnimProgress(0);
-  }, [item.width, item.depth, item.height, car.id, isFolded]);
+  }, [item.width, item.depth, item.height, car.id, isFolded, activeTrajectoryStep]);
 
-  // Animate the cargo sliding in
+  // Trajectory interpolation
   useFrame((_, delta) => {
     if (!meshRef.current) return;
 
+    // 1. Spatial RL Trajectory Step Mode
+    if (spatialRL && spatialRL.trajectorySteps.length > 0 && !isOver) {
+      const targetStepObj =
+        spatialRL.trajectorySteps.find((s) => s.step === activeTrajectoryStep) ||
+        spatialRL.trajectorySteps[2];
+
+      const targetX = targetStepObj.position[0];
+      const targetY = targetStepObj.position[1];
+      const targetZ = targetStepObj.position[2];
+
+      const targetRotX = targetStepObj.rotation[0];
+      const targetRotY = targetStepObj.rotation[1];
+      const targetRotZ = targetStepObj.rotation[2];
+
+      meshRef.current.position.x = THREE.MathUtils.lerp(meshRef.current.position.x, targetX, delta * 8);
+      meshRef.current.position.y = THREE.MathUtils.lerp(meshRef.current.position.y, targetY, delta * 8);
+      meshRef.current.position.z = THREE.MathUtils.lerp(meshRef.current.position.z, targetZ, delta * 8);
+
+      meshRef.current.rotation.x = THREE.MathUtils.lerp(meshRef.current.rotation.x, targetRotX, delta * 8);
+      meshRef.current.rotation.y = THREE.MathUtils.lerp(meshRef.current.rotation.y, targetRotY, delta * 8);
+      meshRef.current.rotation.z = THREE.MathUtils.lerp(meshRef.current.rotation.z, targetRotZ, delta * 8);
+      return;
+    }
+
+    // 2. Default Fallback Animation (For Over or Standard)
     if (animProgress < 1) {
       const speed = isOver ? 1.8 : 1.2;
       setAnimProgress((p) => Math.min(1, p + delta * speed));
     }
 
     const t = animProgress;
-    // Ease-out cubic
     const ease = 1 - Math.pow(1 - t, 3);
-
     const finalY = bh / 2;
 
     if (isOver) {
-      // Over animation: slide in, then bounce back
       if (t < 0.5) {
         const slideIn = t * 2;
         const easeIn = 1 - Math.pow(1 - slideIn, 2);
         meshRef.current.position.z = THREE.MathUtils.lerp(0.8, 0.1, easeIn);
         meshRef.current.position.y = finalY;
       } else {
-        // Bounce back
         const bounceT = (t - 0.5) * 2;
         const bounce = Math.sin(bounceT * Math.PI) * 0.15;
         meshRef.current.position.z = 0.1 + bounce;
         meshRef.current.position.y = finalY;
-        // Shake rotation
         meshRef.current.rotation.z = Math.sin(bounceT * Math.PI * 4) * 0.03 * (1 - bounceT);
       }
     } else {
-      // Success animation: smooth slide from behind and land
       meshRef.current.position.z = THREE.MathUtils.lerp(0.5, 0, ease);
-      // Drop from above
       const dropOffset = (1 - ease) * 1.5;
       meshRef.current.position.y = finalY + dropOffset;
       meshRef.current.rotation.z = 0;
@@ -219,49 +368,53 @@ function CargoItem({
   });
 
   return (
-    <mesh ref={meshRef} position={[0, bh / 2, 2]}>
-      {texture ? (
-        <>
-          <planeGeometry args={[bw, bh]} />
-          <meshBasicMaterial
-            map={texture}
-            transparent
-            side={THREE.DoubleSide}
-          />
-        </>
-      ) : (
-        <>
-          <RoundedBox args={[bw, bh, bd]} radius={0.01} smoothness={4}>
-            <meshStandardMaterial
-              color={itemColor}
-              transparent
-              opacity={0.85}
-              roughness={0.3}
-              metalness={0.1}
-            />
-          </RoundedBox>
-          <lineSegments>
-            <edgesGeometry args={[new THREE.BoxGeometry(bw, bh, bd)]} />
-            <lineBasicMaterial color={itemColor} linewidth={1} transparent opacity={0.6} />
-          </lineSegments>
-        </>
+    <>
+      <mesh ref={meshRef} position={[0, bh / 2, 2]}>
+        {texture ? (
+          <>
+            <planeGeometry args={[bw, bh]} />
+            <meshBasicMaterial map={texture} transparent side={THREE.DoubleSide} />
+          </>
+        ) : (
+          <>
+            <RoundedBox args={[bw, bh, bd]} radius={0.01} smoothness={4}>
+              <meshStandardMaterial
+                color={itemColor}
+                transparent
+                opacity={0.88}
+                roughness={0.25}
+                metalness={0.15}
+              />
+            </RoundedBox>
+            <lineSegments>
+              <edgesGeometry args={[new THREE.BoxGeometry(bw, bh, bd)]} />
+              <lineBasicMaterial color={itemColor} linewidth={1} transparent opacity={0.6} />
+            </lineSegments>
+          </>
+        )}
+      </mesh>
+
+      {/* Center of Gravity Marker when resting */}
+      {!isOver && meshRef.current && (
+        <CenterOfGravityMarker
+          itemPos={[meshRef.current.position.x, meshRef.current.position.y, meshRef.current.position.z]}
+          itemH={bh}
+        />
       )}
-    </mesh>
+    </>
   );
 }
 
 // ─── Margin visualization bars ───
 function MarginIndicators({
   fitResult,
-  car,
-  isFolded,
 }: {
   fitResult: FitCalculation;
   car: CarTrunk;
   isFolded: boolean;
 }) {
   const groupRef = useRef<THREE.Group>(null);
-  
+
   useFrame((_, delta) => {
     if (groupRef.current) {
       groupRef.current.scale.lerp(new THREE.Vector3(1, 1, 1), delta * 6);
@@ -270,9 +423,6 @@ function MarginIndicators({
 
   const { margins, bestOrientation, status } = fitResult;
   if (status === 'over') return null;
-
-  const trunkH = car.height * S;
-  const activeDepth = (isFolded ? car.depthFolded : car.depth) * S;
 
   const bw = bestOrientation.w * S;
   const bh = bestOrientation.h * S;
@@ -291,11 +441,7 @@ function MarginIndicators({
       {margins.width >= 0 && (
         <mesh position={[-(bw / 2 + (margins.width * S) / 2), bh / 2, 0]}>
           <boxGeometry args={[margins.width * S, bh * 0.1, bd * 0.1]} />
-          <meshStandardMaterial
-            color={getColor(margins.width)}
-            transparent
-            opacity={0.5}
-          />
+          <meshStandardMaterial color={getColor(margins.width)} transparent opacity={0.5} />
         </mesh>
       )}
 
@@ -303,11 +449,7 @@ function MarginIndicators({
       {margins.height >= 0 && (
         <mesh position={[0, bh + (margins.height * S) / 2, 0]}>
           <boxGeometry args={[bw * 0.1, margins.height * S, bd * 0.1]} />
-          <meshStandardMaterial
-            color={getColor(margins.height)}
-            transparent
-            opacity={0.5}
-          />
+          <meshStandardMaterial color={getColor(margins.height)} transparent opacity={0.5} />
         </mesh>
       )}
     </group>
@@ -324,9 +466,8 @@ function DimensionLabels({
   fitResult: FitCalculation;
 }) {
   const [show, setShow] = useState(false);
-  
+
   useEffect(() => {
-    // Delay text rendering to prevent troika-three-text 'broken font' flash on initial load
     const timer = setTimeout(() => setShow(true), 300);
     return () => clearTimeout(timer);
   }, []);
@@ -383,20 +524,22 @@ function Scene({
   car,
   isFolded,
   fitResult,
+  activeTrajectoryStep,
+  isPlayingTrajectory,
 }: {
   item: ItemDimensions;
   car: CarTrunk;
   isFolded: boolean;
   fitResult: FitCalculation;
+  activeTrajectoryStep: number;
+  isPlayingTrajectory: boolean;
 }) {
   return (
     <>
-      {/* Lighting */}
-      <ambientLight intensity={0.6} />
-      <directionalLight position={[3, 5, 4]} intensity={0.8} castShadow />
-      <directionalLight position={[-2, 3, -2]} intensity={0.3} />
+      <ambientLight intensity={0.65} />
+      <directionalLight position={[3, 5, 4]} intensity={0.85} castShadow />
+      <directionalLight position={[-2, 3, -2]} intensity={0.35} />
 
-      {/* Floor grid */}
       <Grid
         args={[4, 4]}
         position={[0, -0.001, 0]}
@@ -411,31 +554,33 @@ function Scene({
         infiniteGrid={false}
       />
 
-      {/* Trunk wireframe */}
-      <TrunkBox car={car} isFolded={isFolded} />
-
-      {/* Cargo item with animation */}
-      <CargoItem item={item} fitResult={fitResult} car={car} isFolded={isFolded} />
-
-      {/* Margin indicators */}
+      <TrunkBox car={car} isFolded={isFolded} fitResult={fitResult} />
+      <TrajectorySpline fitResult={fitResult} />
+      <CargoItem
+        item={item}
+        fitResult={fitResult}
+        car={car}
+        isFolded={isFolded}
+        activeTrajectoryStep={activeTrajectoryStep}
+        isPlayingTrajectory={isPlayingTrajectory}
+      />
       <MarginIndicators fitResult={fitResult} car={car} isFolded={isFolded} />
-
-      {/* Dimension labels */}
       <DimensionLabels car={car} isFolded={isFolded} item={item} fitResult={fitResult} />
-
     </>
   );
 }
 
 // ─── Exported component ───
-import { CAR_DATABASE } from '../data/cars';
-
 interface TrunkScene3DProps {
   item: ItemDimensions;
   car: CarTrunk;
   isFolded: boolean;
   allowDiagonal: boolean;
   fitResult: FitCalculation;
+  activeTrajectoryStep?: number;
+  onSelectTrajectoryStep?: (step: number) => void;
+  isPlayingTrajectory?: boolean;
+  onTogglePlayTrajectory?: () => void;
   onSelectCar?: (car: CarTrunk) => void;
   onCopyCert?: () => void;
 }
@@ -445,6 +590,10 @@ export const TrunkScene3D: React.FC<TrunkScene3DProps> = ({
   car,
   isFolded,
   fitResult,
+  activeTrajectoryStep = 3,
+  onSelectTrajectoryStep,
+  isPlayingTrajectory = false,
+  onTogglePlayTrajectory,
   onSelectCar,
   onCopyCert,
 }) => {
@@ -460,9 +609,10 @@ export const TrunkScene3D: React.FC<TrunkScene3DProps> = ({
         objectType: 'feed',
         content: {
           title: `개꿀 - ${car.model}에 이 물건 들어갈까?`,
-          description: fitResult.status === 'fits' 
-            ? '네! 내 차 트렁크에 쏙 들어갑니다. 3D로 확인해보세요.' 
-            : '3D 시뮬레이션으로 적재 가능 여부를 확인해보세요!',
+          description:
+            fitResult.status === 'fits'
+              ? '네! 내 차 트렁크에 쏙 들어갑니다. 3D로 확인해보세요.'
+              : '3D 시뮬레이션으로 적재 가능 여부를 확인해보세요!',
           imageUrl: 'https://www.doghoney.xyz/og-image.jpg',
           link: {
             mobileWebUrl: shareUrl,
@@ -489,7 +639,10 @@ export const TrunkScene3D: React.FC<TrunkScene3DProps> = ({
       try {
         await navigator.share({
           title: `개꿀 - ${car.model} 적재 결과`,
-          text: fitResult.status === 'fits' ? '내 차 트렁크에 쏙 들어갑니다! 3D로 확인해보세요.' : '3D 시뮬레이션으로 확인해보세요!',
+          text:
+            fitResult.status === 'fits'
+              ? '내 차 트렁크에 쏙 들어갑니다! 3D로 확인해보세요.'
+              : '3D 시뮬레이션으로 확인해보세요!',
           url: `https://www.doghoney.xyz/?carId=${car.id}`,
         });
       } catch (err) {
@@ -500,7 +653,6 @@ export const TrunkScene3D: React.FC<TrunkScene3DProps> = ({
     }
   };
 
-  // When item changes, reset the video so we record the new animation
   const triggerKey = `${item.width}-${item.height}-${item.depth}-${car.id}-${isFolded}`;
   useEffect(() => {
     setVideoBlob(null);
@@ -538,7 +690,9 @@ export const TrunkScene3D: React.FC<TrunkScene3DProps> = ({
             <span className="material-symbols-outlined text-[#15803D] text-[24px]">check_circle</span>
             <div className="flex flex-col">
               <span className="text-[#15803D] font-extrabold text-[15px]">여유 있게 적재 가능합니다!</span>
-              {tips.length > 0 && <span className="text-[#166534] text-xs font-medium mt-0.5 leading-snug">{tips[0]}</span>}
+              {tips.length > 0 && (
+                <span className="text-[#166534] text-xs font-medium mt-0.5 leading-snug">{tips[0]}</span>
+              )}
             </div>
           </div>
         );
@@ -548,17 +702,23 @@ export const TrunkScene3D: React.FC<TrunkScene3DProps> = ({
             <span className="material-symbols-outlined text-[#B45309] text-[24px]">warning</span>
             <div className="flex flex-col">
               <span className="text-[#B45309] font-extrabold text-[15px]">적재 가능 (공간 타이트함)</span>
-              {tips.length > 0 && <span className="text-[#92400E] text-xs font-medium mt-0.5 leading-snug">{tips[0]}</span>}
+              {tips.length > 0 && (
+                <span className="text-[#92400E] text-xs font-medium mt-0.5 leading-snug">{tips[0]}</span>
+              )}
             </div>
           </div>
         );
       case 'needs_fold':
         return (
           <div className="bg-[#FFEDD5] border-b border-[#FDBA74] px-4 py-3.5 flex items-start gap-3">
-            <span className="material-symbols-outlined text-[#C2410C] text-[24px]">airline_seat_recline_normal</span>
+            <span className="material-symbols-outlined text-[#C2410C] text-[24px]">
+              airline_seat_recline_normal
+            </span>
             <div className="flex flex-col">
               <span className="text-[#C2410C] font-extrabold text-[15px]">2열 시트를 접어야 들어갑니다!</span>
-              {tips.length > 0 && <span className="text-[#9A3412] text-xs font-medium mt-0.5 leading-snug">{tips[0]}</span>}
+              {tips.length > 0 && (
+                <span className="text-[#9A3412] text-xs font-medium mt-0.5 leading-snug">{tips[0]}</span>
+              )}
             </div>
           </div>
         );
@@ -568,26 +728,21 @@ export const TrunkScene3D: React.FC<TrunkScene3DProps> = ({
             <span className="material-symbols-outlined text-[#B91C1C] text-[24px]">error</span>
             <div className="flex flex-col">
               <span className="text-[#B91C1C] font-extrabold text-[15px]">적재 불가: 크기가 초과됩니다</span>
-              {tips.length > 0 && <span className="text-[#991B1B] text-xs font-medium mt-0.5 leading-snug">{tips[0]}</span>}
+              {tips.length > 0 && (
+                <span className="text-[#991B1B] text-xs font-medium mt-0.5 leading-snug">{tips[0]}</span>
+              )}
             </div>
           </div>
         );
     }
   };
 
-  const activeCarDepth = isFolded ? car.depthFolded : car.depth;
-  const boxW = bestOrientation.w;
-  const boxD = bestOrientation.d;
-  const boxH = bestOrientation.h;
-
   return (
     <section className="bg-white rounded-2xl ambient-shadow overflow-hidden flex flex-col border border-[#EDEEF1]">
-      {/* Simulation Header with Clickable Car Selector */}
+      {/* Header */}
       <div className="px-4 py-3 flex justify-between items-center bg-white border-b border-[#EDEEF1]">
         <div className="flex items-center gap-2">
           <h3 className="font-bold text-[16px] text-[#191C1E]">3D 적재 시뮬레이션</h3>
-          
-          {/* Clickable Car Selector Button */}
           {onSelectCar ? (
             <button
               onClick={() => setIsCarModalOpen(true)}
@@ -614,11 +769,11 @@ export const TrunkScene3D: React.FC<TrunkScene3DProps> = ({
         </div>
       </div>
 
-      {/* Top Alert Banner (Replaces bottom tip box) */}
+      {/* Alert Banner */}
       {renderAlertBanner()}
 
       {/* 3D Canvas (WebGL) */}
-      <div className="h-72 bg-[#F8F9FC] relative select-none pointer-events-none">
+      <div className="h-72 bg-[#F8F9FC] relative select-none">
         <Canvas
           id="trunkfit-3d-canvas"
           camera={{
@@ -636,15 +791,52 @@ export const TrunkScene3D: React.FC<TrunkScene3DProps> = ({
             car={car}
             isFolded={isFolded}
             fitResult={fitResult}
+            activeTrajectoryStep={activeTrajectoryStep}
+            isPlayingTrajectory={isPlayingTrajectory}
           />
           <SceneRecorder onRecordComplete={setVideoBlob} trigger={triggerKey} />
         </Canvas>
+
+        {/* 3D Overlay Controls: Step Fast Switcher */}
+        {fitResult.spatialRL && fitResult.status !== 'over' && (
+          <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-full shadow-md border border-slate-200/80 flex items-center gap-2 text-[11px] font-bold">
+            <span className="text-[#64748B] text-[10px] uppercase">3D 궤적</span>
+            <div className="flex items-center gap-1">
+              {[1, 2, 3].map((st) => (
+                <button
+                  key={st}
+                  onClick={() => onSelectTrajectoryStep && onSelectTrajectoryStep(st)}
+                  className={`w-6 h-6 rounded-full flex items-center justify-center transition-all cursor-pointer ${
+                    activeTrajectoryStep === st
+                      ? 'bg-[#FF7E36] text-white shadow-xs scale-105'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  {st}
+                </button>
+              ))}
+            </div>
+            {onTogglePlayTrajectory && (
+              <button
+                onClick={onTogglePlayTrajectory}
+                className="w-6 h-6 rounded-full bg-[#191C1E] text-white flex items-center justify-center hover:bg-black cursor-pointer active:scale-95"
+                title={isPlayingTrajectory ? '일시정지' : '재생'}
+              >
+                <span className="material-symbols-outlined text-[13px]">
+                  {isPlayingTrajectory ? 'pause' : 'play_arrow'}
+                </span>
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Orientation & Dimension Info */}
       <div className="bg-white px-4 py-2 flex items-center justify-between text-[11px] text-[#5A5E67] border-t border-[#EDEEF1]">
         <div className="flex items-center gap-1.5">
-          <span className="material-symbols-outlined text-[14px] text-[#FF7E36]">rotate_90_degrees_ccw</span>
+          <span className="material-symbols-outlined text-[14px] text-[#FF7E36]">
+            rotate_90_degrees_ccw
+          </span>
           <span className="font-semibold text-[#191C1E]">{bestOrientation.description}</span>
         </div>
         <span className="font-medium">
@@ -690,7 +882,7 @@ export const TrunkScene3D: React.FC<TrunkScene3DProps> = ({
             <span className="material-symbols-outlined text-[18px]">chat_bubble</span>
             카톡 공유
           </button>
-          
+
           <button
             onClick={handleNativeShare}
             className="flex-1 bg-[#F2F3F6] hover:bg-[#E1E2E5] text-[#191C1E] font-bold text-[14px] rounded-xl py-3 shadow-sm active:scale-98 transition-all flex justify-center items-center gap-1.5 cursor-pointer"
@@ -705,20 +897,19 @@ export const TrunkScene3D: React.FC<TrunkScene3DProps> = ({
             onClick={onCopyCert}
             className="w-full bg-[#FF7E36] hover:bg-[#E0601A] text-white font-bold text-[15px] rounded-xl py-3 shadow-md hover:shadow-lg active:scale-98 transition-all flex justify-center items-center gap-2 cursor-pointer mt-1"
           >
-            <span className="material-symbols-outlined text-[20px] fill-1">
-              check_circle
-            </span>
+            <span className="material-symbols-outlined text-[20px] fill-1">check_circle</span>
             당근마켓 3D 적재 인증 짤 복사
           </button>
         )}
-
       </div>
 
-      {/* Quick Car Selection Modal for 3D Header */}
+      {/* Quick Car Selection Modal */}
       {isCarModalOpen && onSelectCar && (
         <div
           className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4"
-          onClick={(e) => { if (e.target === e.currentTarget) setIsCarModalOpen(false); }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setIsCarModalOpen(false);
+          }}
         >
           <div className="bg-white rounded-2xl max-w-md w-full max-h-[85vh] flex flex-col overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-200">
             <div className="p-4 border-b border-[#EDEEF1] flex items-center justify-between">

@@ -94,21 +94,18 @@ export function useAuth() {
     checkKakaoSession();
   }, []);
 
-  const fetchKakaoProfile = (): Promise<UserProfile> => {
-    return new Promise((resolve, reject) => {
-      window.Kakao.API.request({
+  const fetchKakaoProfile = async (): Promise<UserProfile> => {
+    try {
+      const response: any = await window.Kakao.API.request({
         url: '/v2/user/me',
-        success: function (response: any) {
-          resolve({
-            nickname: response.kakao_account?.profile?.nickname || '사용자',
-            profile_image_url: response.kakao_account?.profile?.profile_image_url,
-          });
-        },
-        fail: function (error: any) {
-          reject(error);
-        },
       });
-    });
+      return {
+        nickname: response.kakao_account?.profile?.nickname || '사용자',
+        profile_image_url: response.kakao_account?.profile?.profile_image_url,
+      };
+    } catch (error) {
+      throw error;
+    }
   };
 
   const loginWithKakao = useCallback(() => {

@@ -16,9 +16,13 @@ import { DimensionInputs } from './components/DimensionInputs';
 import { CarSelector } from './components/CarSelector';
 import { PhysicsToggles } from './components/PhysicsToggles';
 import { TrunkScene3D } from './components/TrunkScene3D';
+import { AiSpatialAnalysisCard } from './components/AiSpatialAnalysisCard';
+import { CoupangSmartRecommender } from './components/CoupangSmartRecommender';
 import { CertificationCardModal } from './components/CertificationCardModal';
 import { TransportModal } from './components/TransportModal';
 import { AlternativeGoodsModal } from './components/AlternativeGoodsModal';
+import { MultiItemPackingModal } from './components/MultiItemPackingModal';
+import { AdminAnalyticsModal } from './components/AdminAnalyticsModal';
 import { HelpModal } from './components/HelpModal';
 import { ShareGuideModal } from './components/ShareGuideModal';
 import { HistoryView } from './components/HistoryView';
@@ -179,10 +183,25 @@ export default function App() {
   // Toggles (matching mockup: 2열 시트 폴딩=true)
   const [isFolded, setIsFolded] = useState(true);
 
+  // 3D Spatial RL Trajectory states
+  const [activeTrajectoryStep, setActiveTrajectoryStep] = useState<number>(3);
+  const [isPlayingTrajectory, setIsPlayingTrajectory] = useState<boolean>(false);
+
+  // Auto-play trajectory interval
+  useEffect(() => {
+    if (!isPlayingTrajectory) return;
+    const timer = setInterval(() => {
+      setActiveTrajectoryStep((prev) => (prev >= 3 ? 1 : prev + 1));
+    }, 1800);
+    return () => clearInterval(timer);
+  }, [isPlayingTrajectory]);
+
   // Modals
   const [isCertModalOpen, setIsCertModalOpen] = useState(false);
   const [isTransportModalOpen, setIsTransportModalOpen] = useState(false);
   const [isAltModalOpen, setIsAltModalOpen] = useState(false);
+  const [isMultiPackingModalOpen, setIsMultiPackingModalOpen] = useState(false);
+  const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
   const [isShareGuideModalOpen, setIsShareGuideModalOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -306,6 +325,9 @@ export default function App() {
       <TopAppBar
         onOpenMenu={() => setIsMenuOpen(true)}
         onOpenHelp={() => setIsHelpModalOpen(true)}
+        onOpenAdmin={() => setIsAdminModalOpen(true)}
+        isLoggedIn={isLoggedIn}
+        userProfileImage={user?.profile_image_url}
       />
 
       {/* Share Target / General Toast Banner */}
@@ -349,9 +371,49 @@ export default function App() {
               isFolded={isFolded}
               allowDiagonal={true}
               fitResult={fitResult!}
+              activeTrajectoryStep={activeTrajectoryStep}
+              onSelectTrajectoryStep={setActiveTrajectoryStep}
+              isPlayingTrajectory={isPlayingTrajectory}
+              onTogglePlayTrajectory={() => setIsPlayingTrajectory(!isPlayingTrajectory)}
               onSelectCar={handleSelectCar}
               onCopyCert={handleOpenCertModal}
             />
+
+            {/* AI Spatial RL Analysis & 3-Step Trajectory Guide */}
+            {fitResult.spatialRL && (
+              <AiSpatialAnalysisCard
+                spatialRL={fitResult.spatialRL}
+                activeTrajectoryStep={activeTrajectoryStep}
+                onSelectTrajectoryStep={setActiveTrajectoryStep}
+                isPlayingTrajectory={isPlayingTrajectory}
+                onTogglePlayTrajectory={() => setIsPlayingTrajectory(!isPlayingTrajectory)}
+              />
+            )}
+
+            {/* Multi-Item 3D Tetris Packing Quick Launcher */}
+            <button
+              onClick={() => setIsMultiPackingModalOpen(true)}
+              className="bg-gradient-to-r from-[#191C1E] to-[#2B303A] hover:from-black hover:to-[#191C1E] text-white p-3.5 rounded-2xl flex items-center justify-between shadow-md active:scale-98 transition-all cursor-pointer border border-slate-700/50"
+            >
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-orange-500/20 text-[#FF7E36] flex items-center justify-center">
+                  <span className="material-symbols-outlined text-[20px]">view_in_ar</span>
+                </div>
+                <div className="text-left">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[13px] font-extrabold text-white">복수 물품 3D 테트리스 패킹</span>
+                    <span className="text-[9.5px] bg-[#FF7E36] text-white font-bold px-1.5 py-0.2 rounded-full">
+                      NEW
+                    </span>
+                  </div>
+                  <span className="text-[10.5px] text-slate-300">짐 2개 이상 동시 적재 시뮬레이션</span>
+                </div>
+              </div>
+              <div className="flex items-center text-[#FF7E36] text-xs font-bold gap-0.5">
+                <span>패킹 시작</span>
+                <span className="material-symbols-outlined text-[16px]">chevron_right</span>
+              </div>
+            </button>
 
             {/* 2. Photo Upload & 1-Click Presets */}
             <section className="bg-white rounded-2xl ambient-shadow p-5 flex flex-col gap-4 border border-[#EDEEF1]">
@@ -379,6 +441,14 @@ export default function App() {
               <DimensionInputs dimensions={dimensions} onChange={(dims) => setDimensions(dims as ItemDimensions)} />
             </section>
 
+            {/* 4. AI Coupang Contextual Commerce RL Recommendation Card */}
+            <CoupangSmartRecommender
+              fitResult={fitResult}
+              item={dimensions}
+              car={selectedCar}
+              onOpenAltModal={() => setIsAltModalOpen(true)}
+            />
+
             <section className="flex flex-col gap-2.5 animate-in fade-in slide-in-from-bottom-2 duration-500">
               {/* Side by side quick tools */}
               <div className="grid grid-cols-2 gap-2.5">
@@ -396,19 +466,10 @@ export default function App() {
                   <span className="text-[11px] text-[#595F67]">다마스 / 라보 견적</span>
                 </button>
 
-                {/* 대체품 찾기 → 쿠팡 파트너스 */}
-                <a
-                  href={`https://www.coupang.com/np/search?component=&q=${encodeURIComponent(dimensions?.name || dimensions?.category || '수납장')}${import.meta.env.VITE_COUPANG_AF_ID ? `&affiliateId=${import.meta.env.VITE_COUPANG_AF_ID}` : ''}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                {/* 대체품 찾기 → 쿠팡 파트너스 모달 */}
+                <button
+                  onClick={() => setIsAltModalOpen(true)}
                   className="bg-white rounded-xl p-4 border border-[#DFC0B3]/80 hover:border-[#FF7E36] flex flex-col items-center justify-center gap-1.5 transition-all group ambient-shadow cursor-pointer active:scale-95"
-                  onClick={(e) => {
-                    // Prevent default if no dimensions to avoid empty search
-                    if (!dimensions?.name && !dimensions?.category) {
-                      e.preventDefault();
-                      alert('먼저 가구 사진을 등록해주세요!');
-                    }
-                  }}
                 >
                   <div className="bg-[#F2F3F6] p-2.5 rounded-full group-hover:bg-[#FFDBCC] transition-colors">
                     <span className="material-symbols-outlined text-[#191C1E] group-hover:text-[#FF7E36] text-[22px]">
@@ -416,10 +477,10 @@ export default function App() {
                     </span>
                   </div>
                   <span className="font-bold text-[14px] text-[#191C1E]">
-                    쿠팡 신품 비교
+                    신품·용품 전체 비교
                   </span>
-                  <span className="text-[11px] text-[#595F67]">🚀 로켓배송 최저가</span>
-                </a>
+                  <span className="text-[11px] text-[#595F67]">🛒 AI 최저가 매칭</span>
+                </button>
               </div>
 
               {/* 3. Tight / Over 판정 시 트렁크 고정용품 (쿠팡 파트너스) */}
@@ -473,7 +534,11 @@ export default function App() {
 
         {/* Tab 4: Profile & My Garage */}
         {activeTab === 'profile' && (
-          <ProfileView currentCar={selectedCar} onSelectCar={handleSelectCar} />
+          <ProfileView
+            currentCar={selectedCar}
+            onSelectCar={handleSelectCar}
+            onOpenAdmin={() => setIsAdminModalOpen(true)}
+          />
         )}
       </main>
 
@@ -645,6 +710,20 @@ export default function App() {
         isOpen={isAltModalOpen}
         onClose={() => setIsAltModalOpen(false)}
         item={dimensions}
+        fitResult={fitResult}
+      />
+
+      <MultiItemPackingModal
+        isOpen={isMultiPackingModalOpen}
+        onClose={() => setIsMultiPackingModalOpen(false)}
+        car={selectedCar}
+        isFolded={isFolded}
+        initialItem={dimensions}
+      />
+
+      <AdminAnalyticsModal
+        isOpen={isAdminModalOpen}
+        onClose={() => setIsAdminModalOpen(false)}
       />
 
       <HelpModal isOpen={isHelpModalOpen} onClose={() => setIsHelpModalOpen(false)} />

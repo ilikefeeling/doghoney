@@ -8,9 +8,10 @@ import { ShareGuideModal } from './ShareGuideModal';
 interface ProfileViewProps {
   currentCar: CarTrunk;
   onSelectCar: (car: CarTrunk) => void;
+  onOpenAdmin?: () => void;
 }
 
-export const ProfileView: React.FC<ProfileViewProps> = ({ currentCar, onSelectCar }) => {
+export const ProfileView: React.FC<ProfileViewProps> = ({ currentCar, onSelectCar, onOpenAdmin }) => {
   const [user, setUser] = useState<UserProfile>(getSavedUserProfile);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [showAddCarModal, setShowAddCarModal] = useState(false);
@@ -278,11 +279,16 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ currentCar, onSelectCa
         </a>
       </section>
 
-      {/* 5. App Info & Tip */}
+      {/* 5. App Info & Tip (Secret 5-tap on version for admin) */}
       <div className="p-4 bg-[#F2F3F6] rounded-2xl text-xs text-[#5A5E67] flex flex-col gap-1.5">
         <div className="flex items-center justify-between font-bold text-[#191C1E]">
           <span>TrunkFit 당근 AI 트렁크 시뮬레이터</span>
-          <span>v2.0.0 (Phase 2)</span>
+          <span
+            onClick={onOpenAdmin}
+            className="cursor-pointer select-none text-slate-400 hover:text-slate-600"
+          >
+            v2.0.0
+          </span>
         </div>
         <p>• 총 51종 국산 및 수입 전 차종 실측 데이터베이스 탑재</p>
         <p>• Gemini AI 비전 치수 인식 + Three.js 3D WebGL 시연 엔진</p>

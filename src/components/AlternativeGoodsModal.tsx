@@ -1,74 +1,59 @@
+/**
+ * @license
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import React from 'react';
-import { ItemDimensions } from '../types';
+import { FitCalculation, ItemDimensions } from '../types';
+import { CommerceRLStore } from '../utils/spatialRL/CommerceRLStore';
 
 interface AlternativeGoodsModalProps {
   isOpen: boolean;
   onClose: () => void;
   item: ItemDimensions;
+  fitResult?: FitCalculation;
 }
 
 export const AlternativeGoodsModal: React.FC<AlternativeGoodsModalProps> = ({
   isOpen,
   onClose,
   item,
+  fitResult,
 }) => {
   if (!isOpen) return null;
 
-  const searchQuery = encodeURIComponent(item.name || 'DIY 조립 가구');
+  const cleanItemName = item.name
+    ? item.name.replace(/\s*\(AI 표준 규격 추정\)/g, '').replace(/\s*\(수동 입력 필요\)/g, '').trim()
+    : '가구 가전';
 
-  const alternatives = [
-    {
-      title: `${item.name || '원목 가구'} DIY 플랫팩 조립형`,
-      platform: '🚀 쿠팡 로켓배송',
-      price: '59,000원~',
-      packSize: `${Math.round(item.width * 0.9)} × ${Math.round(item.depth * 0.4)} × 15 cm`,
-      rating: '⭐ 4.8 (1,240개 리뷰)',
-      benefit: '내일 아침 도착 • 100% 트렁크 적재 가능 (플랫 박스)',
-      icon: 'rocket_launch',
-      badgeColor: 'bg-[#E02020] text-white',
-      // 쿠팡 파트너스 검색 링크 (실제 파트너스 가입 후 어필리에이트 ID 교체 필요)
-      link: `https://www.coupang.com/np/search?component=&q=${searchQuery}&channel=user`,
-      linkLabel: '쿠팡 최저가 보기 →',
-    },
-    {
-      title: `모듈형 분해 조립 ${item.name || '수납 가구'}`,
-      platform: '🏠 오늘의집',
-      price: '74,900원~',
-      packSize: `${Math.round(item.width * 0.8)} × ${Math.round(item.depth * 0.5)} × 12 cm`,
-      rating: '⭐ 4.9 (890개 리뷰)',
-      benefit: '무료배송 • 승용차 트렁크에도 쏙 들어가는 분할 패키지',
-      icon: 'home',
-      badgeColor: 'bg-[#35C5F0] text-white',
-      link: `https://ohou.se/search?query=${searchQuery}`,
-      linkLabel: '오늘의집에서 보기 →',
-    },
-    {
-      title: `초경량 접이식 ${item.name || '가구'} 시리즈`,
-      platform: '🟡 이케아 공식',
-      price: '49,900원~',
-      packSize: `${Math.round(item.width * 0.7)} × 25 × 10 cm`,
-      rating: '⭐ 4.7 (2,100개 리뷰)',
-      benefit: '소형차 100% 적재 보증 • 컴팩트 플랫팩 포장',
-      icon: 'inventory_2',
-      badgeColor: 'bg-[#0058A3] text-[#FFDA1A]',
-      link: `https://www.ikea.com/kr/ko/search/?q=${searchQuery}`,
-      linkLabel: '이케아에서 보기 →',
-    },
-  ];
+  const recommendations = fitResult?.coupangRecommendations || [];
+  const searchKeyword = item.coupangKeyword || cleanItemName;
+  const searchQuery = encodeURIComponent(searchKeyword);
+
+  const handleClickRec = (keyword: string, strategy: string) => {
+    CommerceRLStore.recordFeedback(keyword, strategy, 'click');
+  };
 
   return (
     <div
       className="fixed inset-0 bg-black/65 backdrop-blur-xs z-50 flex items-center justify-center p-4"
-      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
     >
       <div className="bg-white rounded-3xl max-w-md w-full overflow-hidden shadow-2xl flex flex-col animate-in fade-in zoom-in-95 duration-200">
         {/* Header */}
-        <div className="bg-[#FF7E36] text-white p-4 flex items-center justify-between">
+        <div className="bg-gradient-to-r from-[#E02020] to-[#FF7E36] text-white p-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-[24px]">shopping_bag</span>
+            <span className="material-symbols-outlined text-[24px]">shopping_cart</span>
             <div>
-              <h3 className="font-bold text-[17px]">🛒 신품 최저가 비교</h3>
-              <p className="text-xs text-white/85">중고 직접 운반 수고 vs 신품 무료 배송</p>
+              <div className="flex items-center gap-1.5">
+                <h3 className="font-bold text-[17px]">🛒 AI 맞춤 쿠팡 1:1 솔루션</h3>
+                <span className="text-[10px] bg-white/20 text-white font-bold px-1.5 py-0.2 rounded-full">
+                  1:1 RL 분석
+                </span>
+              </div>
+              <p className="text-xs text-white/90">중고 직접 운반 수고 vs 신품 무료 배송 / 안전 키트</p>
             </div>
           </div>
           <button
@@ -82,47 +67,77 @@ export const AlternativeGoodsModal: React.FC<AlternativeGoodsModalProps> = ({
         {/* List */}
         <div className="p-4 overflow-y-auto flex flex-col gap-3 bg-[#F8F9FC] max-h-[65vh]">
           <div className="p-3 bg-[#FFDBCC]/40 rounded-xl border border-[#FF7E36]/30 text-xs text-[#7A3000]">
-            💡 중고 {item.name || '물품'} (가로 {item.width}cm)의 직접 운반이 어렵다면,{' '}
-            <strong>플랫팩(Flat-pack) 조립 가구</strong>를 신품 로켓배송으로 받아보세요!
+            💡 AI 강화학습 엔진이 적재 상황에 가장 적합한 <strong>1:1 쿠팡 로켓 솔루션</strong>을 매칭했습니다.
           </div>
 
-          {alternatives.map((alt, idx) => (
+          {/* Dynamic RL Recommendations */}
+          {recommendations.map((rec) => (
             <div
-              key={idx}
-              className="bg-white p-3.5 rounded-2xl border border-[#EDEEF1] hover:border-[#FF7E36] shadow-xs transition-all flex flex-col gap-2"
+              key={rec.id}
+              className="bg-white p-4 rounded-2xl border border-[#EDEEF1] hover:border-[#FF7E36] shadow-xs transition-all flex flex-col gap-2.5"
             >
               <div className="flex items-center justify-between">
-                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${alt.badgeColor}`}>
-                  {alt.platform}
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${rec.badgeColor}`}>
+                  {rec.badge}
                 </span>
-                <span className="text-xs font-semibold text-[#5A5E67]">{alt.rating}</span>
+                <span className="text-[11px] font-extrabold text-red-600">
+                  AI 적합도 {rec.qScore}%
+                </span>
               </div>
 
               <div>
-                <h4 className="font-bold text-[15px] text-[#191C1E]">{alt.title}</h4>
-                <p className="text-xs text-[#FF7E36] font-extrabold mt-0.5">{alt.price}</p>
+                <h4 className="font-bold text-[15px] text-[#191C1E] leading-snug">{rec.title}</h4>
+                <p className="text-xs text-[#7A3000] font-medium mt-1 leading-relaxed">{rec.hook}</p>
               </div>
 
-              <div className="bg-[#F8F9FC] p-2 rounded-lg text-[11px] text-[#595F67] flex justify-between">
-                <span>포장 크기 (납작 포장)</span>
-                <strong className="text-[#191C1E]">{alt.packSize}</strong>
+              <div className="text-[11px] text-emerald-700 font-semibold flex items-center gap-1 bg-[#F1F5F9] p-2 rounded-xl">
+                <span className="material-symbols-outlined text-[15px] text-emerald-600 shrink-0">
+                  check_circle
+                </span>
+                <span>{rec.benefit}</span>
               </div>
 
-              <div className="text-[11px] text-[#10B981] font-semibold flex items-center gap-1">
-                <span className="material-symbols-outlined text-[14px]">check_circle</span>
-                {alt.benefit}
-              </div>
+              {rec.costSavingsLabel && (
+                <div className="text-[10.5px] text-[#B91C1C] font-bold flex items-center gap-1 bg-red-50 px-2.5 py-1 rounded-lg border border-red-200">
+                  <span className="material-symbols-outlined text-[13px] text-red-600">savings</span>
+                  <span>{rec.costSavingsLabel}</span>
+                </div>
+              )}
 
               <a
-                href={alt.link}
+                href={rec.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-1 w-full bg-[#F2F3F6] hover:bg-[#FFDBCC] text-[#191C1E] hover:text-[#7A3000] font-bold py-2 rounded-xl text-xs text-center transition-colors block"
+                onClick={() => handleClickRec(rec.keyword, rec.strategy)}
+                className="mt-1 w-full bg-[#E02020] hover:bg-[#C81818] text-white font-bold py-2.5 rounded-xl text-xs text-center shadow-xs transition-colors flex items-center justify-center gap-1 block"
               >
-                {alt.linkLabel}
+                <span className="material-symbols-outlined text-[15px]">shopping_cart</span>
+                {rec.priceLabel}
               </a>
             </div>
           ))}
+
+          {/* Fallback Today's House Option */}
+          <div className="bg-white p-3.5 rounded-2xl border border-[#EDEEF1] shadow-xs flex flex-col gap-2 opacity-90">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#35C5F0] text-white">
+                🏠 오늘의집
+              </span>
+              <span className="text-xs font-semibold text-[#5A5E67]">인기 가구/인테리어</span>
+            </div>
+            <div>
+              <h4 className="font-bold text-[14px] text-[#191C1E]">{cleanItemName} 인테리어 신품</h4>
+              <p className="text-xs text-[#595F67] mt-0.5">무료배송 • 원하는 날짜 지정 배송</p>
+            </div>
+            <a
+              href={`https://ohou.se/search?query=${searchQuery}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full bg-[#F2F3F6] hover:bg-[#E1E2E5] text-[#191C1E] font-bold py-2 rounded-xl text-xs text-center transition-colors block"
+            >
+              오늘의집 최저가 비교 →
+            </a>
+          </div>
 
           {/* 쿠팡 파트너스 면책 고지 */}
           <p className="text-[9px] text-[#9EA3AC] text-center px-2 leading-relaxed">

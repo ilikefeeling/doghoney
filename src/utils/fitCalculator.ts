@@ -1,4 +1,7 @@
 import { CarTrunk, FitCalculation, FitStatus, ItemDimensions } from '../types';
+import { SpatialRLAgent } from './spatialRL/SpatialRLAgent';
+import { CoupangRLAgent } from './spatialRL/CoupangRLAgent';
+import { TelemetryTracker } from './analytics/telemetryTracker';
 
 export function calculateFit(
   item: ItemDimensions,
@@ -10,6 +13,15 @@ export function calculateFit(
   const itemW = Math.max(1, item.width);
   const itemD = Math.max(1, item.depth);
   const itemH = Math.max(1, item.height);
+
+  // 1. Execute 3D Spatial Reinforcement Learning Engine
+  let spatialRL;
+  try {
+    const rlAgent = new SpatialRLAgent(car, item, isFolded);
+    spatialRL = rlAgent.solve(allowDiagonal, allowRotation);
+  } catch (err) {
+    console.warn('[SpatialRL] Agent solving warning:', err);
+  }
 
   const activeDepth = isFolded ? car.depthFolded : car.depth;
   const carW = car.width;
@@ -203,6 +215,15 @@ export function calculateFit(
   const carVolLiters = isFolded ? car.volumeLitersFolded : car.volumeLiters;
   const volumeRatio = Math.min(1, itemVolLiters / carVolLiters);
 
+  // 2. Execute Contextual Commerce Reinforcement Learning Engine for Coupang
+  let coupangRecommendations;
+  try {
+    const coupangAgent = new CoupangRLAgent(item, car, status, spatialRL, isFolded);
+    coupangRecommendations = coupangAgent.solveRecommendations();
+  } catch (err) {
+    console.warn('[CoupangRL] Agent recommendation warning:', err);
+  }
+
   return {
     status,
     statusLabel,
@@ -227,5 +248,15 @@ export function calculateFit(
     canFitDiagonal,
     tips,
     volumeRatio,
+    spatialRL,
+    coupangRecommendations,
   };
+
+  try {
+    TelemetryTracker.recordMeasurement(item, car, fitResult, isFolded);
+  } catch {
+    /* ignore */
+  }
+
+  return fitResult;
 }

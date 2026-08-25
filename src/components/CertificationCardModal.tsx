@@ -261,9 +261,16 @@ export const CertificationCardModal: React.FC<CertificationCardModalProps> = ({
                   </span>
                   <span className="font-extrabold text-[15px] text-[#191C1E]">TrunkFit 인증서</span>
                 </div>
-                <span className="text-[11px] bg-[#FFDBCC] text-[#7A3000] font-bold px-2 py-0.5 rounded-full">
-                  당근마켓 직거래 검증
-                </span>
+                <div className="flex items-center gap-1">
+                  {fitResult.spatialRL && (
+                    <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full border border-emerald-200">
+                      AI 강화학습 {fitResult.spatialRL.confidence}%
+                    </span>
+                  )}
+                  <span className="text-[10px] bg-[#FFDBCC] text-[#7A3000] font-bold px-2 py-0.5 rounded-full">
+                    당근 검증
+                  </span>
+                </div>
               </div>
 
               {/* Status Big Banner */}
