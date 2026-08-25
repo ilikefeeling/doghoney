@@ -434,7 +434,7 @@ export default function App() {
               {/* 1st Priority: 신품 가격 비교 */}
               <button
                 onClick={() => setIsAltModalOpen(true)}
-                className="w-full bg-gradient-to-r from-[#FF7E36] to-[#FFA066] hover:from-[#E0601A] hover:to-[#FF7E36] text-white rounded-2xl p-4 flex items-center justify-between shadow-md active:scale-98 transition-all cursor-pointer border border-[#FF7E36]/30"
+                className="w-full bg-gradient-to-r from-[#2563EB] to-[#3B82F6] hover:from-[#1D4ED8] hover:to-[#2563EB] text-white rounded-2xl p-4 flex items-center justify-between shadow-md active:scale-98 transition-all cursor-pointer border border-[#2563EB]/30"
               >
                 <div className="flex items-center gap-3 text-left">
                   <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-white shrink-0">
@@ -442,8 +442,8 @@ export default function App() {
                   </div>
                   <div>
                     <div className="flex items-center gap-1.5">
-                      <span className="font-extrabold text-[15px] text-white">신품 가격 비교</span>
-                      <span className="text-[9.5px] bg-white text-[#C2410C] font-black px-1.5 py-0.2 rounded-full">
+                      <span className="font-extrabold text-[15px] text-white">새 건 얼마지?</span>
+                      <span className="text-[9.5px] bg-white text-[#1D4ED8] font-black px-1.5 py-0.2 rounded-full">
                         1순위
                       </span>
                     </div>
