@@ -618,6 +618,9 @@ export const AdminPage: React.FC = () => {
                 </div>
               ))}
             </div>
+          </div>
+        )}
+
         {/* ─── TAB 6: SPATIAL PHYSICS ENGINE DIAGNOSTICS ─── */}
         {activeTab === 'spatial' && (
           <div className="bg-[#141E33] p-6 rounded-3xl border border-slate-700/80 flex flex-col gap-5 animate-in fade-in duration-300">
