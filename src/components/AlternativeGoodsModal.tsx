@@ -75,7 +75,7 @@ export const AlternativeGoodsModal: React.FC<AlternativeGoodsModalProps> = ({
         {/* List */}
         <div className="p-4 overflow-y-auto flex flex-col gap-3 bg-[#F8F9FC] max-h-[65vh]">
           <div className="p-3 bg-[#FFDBCC]/40 rounded-xl border border-[#FF7E36]/30 text-xs text-[#7A3000]">
-            💡 선택하신 차량의 트렁크 규격과 적재 상태를 분석하여 가장 경제적인 <strong>1:1 맞춤 대안(신품 로켓설치 / DIY 플랫팩 / 고정용품)</strong>을 매칭했습니다.
+            💡 차량 트렁크 규격에 맞춘 최적의 대안 및 용품을 매칭했습니다.
           </div>
 
           {/* Dynamic Recommendations */}
@@ -95,29 +95,14 @@ export const AlternativeGoodsModal: React.FC<AlternativeGoodsModalProps> = ({
 
               <div>
                 <h4 className="font-bold text-[15px] text-[#191C1E] leading-snug">{rec.title}</h4>
-                <p className="text-xs text-[#7A3000] font-medium mt-1 leading-relaxed">{rec.hook}</p>
               </div>
-
-              <div className="text-[11px] text-emerald-700 font-semibold flex items-center gap-1 bg-[#F1F5F9] p-2 rounded-xl">
-                <span className="material-symbols-outlined text-[15px] text-emerald-600 shrink-0">
-                  check_circle
-                </span>
-                <span>{rec.benefit}</span>
-              </div>
-
-              {rec.costSavingsLabel && (
-                <div className="text-[10.5px] text-[#B91C1C] font-bold flex items-center gap-1 bg-red-50 px-2.5 py-1 rounded-lg border border-red-200">
-                  <span className="material-symbols-outlined text-[13px] text-red-600">savings</span>
-                  <span>{rec.costSavingsLabel}</span>
-                </div>
-              )}
 
               <a
                 href={rec.url}
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => handleClickRec(rec.keyword, rec.strategy, rec.qScore, rec.url)}
-                className="mt-1 w-full bg-[#E02020] hover:bg-[#C81818] text-white font-bold py-2.5 rounded-xl text-xs text-center shadow-xs transition-colors flex items-center justify-center gap-1 block"
+                className="mt-1 w-full bg-[#3B82F6] hover:bg-[#2563EB] text-white font-bold py-2.5 rounded-xl text-xs text-center shadow-xs transition-colors flex items-center justify-center gap-1 block"
               >
                 <span className="material-symbols-outlined text-[15px]">shopping_cart</span>
                 {rec.priceLabel}

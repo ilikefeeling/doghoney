@@ -225,7 +225,7 @@ export class CoupangRLAgent {
       recommendations.push({
         id: 'coupang-cargo-securing',
         strategy: 'cargo_securing',
-        title: isPetPlant ? '트렁크 흔들림 방지 고정벨트 & 방수 오염방지 패드' : '트렁크 화물 고정 탄성바 & 보양 완충 담요',
+        title: isPetPlant ? '흔들림 방지 벨트 & 방수 패드' : '탄성바 & 완충 담요',
         badge: '🛡️ 흠집 및 코너링 쏠림 방지',
         badgeColor: 'bg-[#FF7E36] text-white',
         priceLabel: '쿠팡 로켓배송 1만원대 →',
@@ -256,7 +256,7 @@ export class CoupangRLAgent {
       recommendations.push({
         id: 'coupang-vehicle-custom',
         strategy: 'vehicle_custom',
-        title: `${cleanCarName} 전용 3D 풀커버 트렁크 매트`,
+        title: `${cleanCarName} 전용 트렁크 매트`,
         badge: `🚗 ${this.car.model.split(' ')[0]} 맞춤 규격`,
         badgeColor: 'bg-[#10B981] text-white',
         priceLabel: '차종 전용 최저가 보기 →',
@@ -270,8 +270,20 @@ export class CoupangRLAgent {
       });
     }
 
-    // Sort by Q-Score descending
-    recommendations.sort((a, b) => b.qScore - a.qScore);
+    // Sort by Priority (Alternatives first) then Q-Score
+    const priorityMap: Record<string, number> = {
+      flatpack_diy: 1000,
+      new_product: 900,
+      vehicle_custom: 100,
+      cargo_securing: 50,
+    };
+    recommendations.sort((a, b) => {
+      // If exact 1to1, treat it as very high priority
+      const aPrio = a.id.startsWith('exact-1to1') ? 2000 : (priorityMap[a.strategy] || 0);
+      const bPrio = b.id.startsWith('exact-1to1') ? 2000 : (priorityMap[b.strategy] || 0);
+      if (aPrio !== bPrio) return bPrio - aPrio;
+      return b.qScore - a.qScore;
+    });
     return recommendations;
   }
 }
